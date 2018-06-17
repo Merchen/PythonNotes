@@ -6,7 +6,6 @@ Created on Tue Jun 12 20:49:32 2018
 """
 
 import re
-import os
 
 # 将字符串形式的正则表达式编译为Pattern对象
 # re.compile(Pattern[, flag])

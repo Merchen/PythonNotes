@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re #正则搜索库
+import re  # 正则搜索库
+import sys
 
 #当前所在目录绝对路径
 #os.getcwd()
@@ -24,17 +25,15 @@ def serch_file_contents(dirname = ROOT_PATH,
     :param dirname: 查找路径
     :param re_query: 查找内容
     :param fn_contains: 文件名称条件
-    :return:
+    :return: 包含指定内容的文件列表
     """
-    pattern = re.compile(RE_QUERY)  #编译为正则对象
+    pattern = re.compile(re_query)  #编译为正则对象
     result =  []                    #搜索结果列表
-    
+
     #递归路径下的各目录
     for path,dirnames,filenames in os.walk(dirname):
-        
         #遍历当前目录所有文件 
-        for fname in filenames:                    
-            
+        for fname in filenames:
             #文件搜索过滤
             search = False
             if fn_contains:
@@ -42,7 +41,6 @@ def serch_file_contents(dirname = ROOT_PATH,
                     search = True
             else:
                 search = True
-            
             #执行搜索
             if search:
                 fpath = os.path.join(path,fname)    
@@ -57,6 +55,29 @@ def serch_file_contents(dirname = ROOT_PATH,
         print("Unfound file.")
             
 
+def uniq_syspath():
+    """编译系统环境变量去重"""
+    sys.path = list(set(sys.path))
+    # i = 0
+    # while i < len(sys.path)-1:
+    #     value = sys.path[i]
+    #     j = i + 1
+    #     while j <= len(sys.path)-1:
+    #         if sys.path[j] == value:
+    #             del sys.path[j]
+    #         else:
+    #                 j += 1
+    #     i += 1
+
+
+def append_syspath(path=ROOT_PATH):
+    """编译系统添加环境变量"""
+    if path not in sys.path:
+        sys.path.append(path)
+
+
 if __name__ == '__main__':
 
-    serch_file_contents(FATHER_PATH,RE_QUERY,FILENAME_CONTAINS)
+    # serch_file_contents(FATHER_PATH,RE_QUERY,FILENAME_CONTAINS)
+    append_syspath()
+    print(sys.path)

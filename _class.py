@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from warnings import warn
+import os.path as mypath
+
 """
 __xxx__,系统专用标识,可在类外部使用instance.__xxx__形式调用
 __xxx，伪私有声明，不可在类外部使用instance.__xxx形式调用
@@ -10,10 +12,10 @@ _xxx,伪保护声明，仅类实例和子类实例可以直接访问，不可通
 对象实例的属性查找顺序遵循--实例对象本身 --> 类 --> 类的父类
 """
 
-
 # 被保护类型，其他文件不同通过import方式载入
 _MODEL_BATTERY = {"A": 70, "S": 100}
 _MYDICT = {"a": 1, "b": 2, "c": 3}
+
 
 
 class Car(object):
@@ -24,16 +26,18 @@ class Car(object):
 
     def __init__(self, make, color):
         """构造函数"""
-        self.make = make.title()
-        self.color = color.title()
-        self.__odometer= 0
-        # 更新类级变量
+        # 关键字列表及迭代次数标志
+        # 直接使用__dict__初始化则不调用__setattr__方法，务必放置在__init__开头
+        self.__dict__['_keys'] = []
+        self.__dict__['_pos'] = 0
+        self.make, self.color, self.__odometer = make, color, 0
         Car.count += 1
         Car.__count += 1
 
     def __del__(self):
         """析构函数"""
         del self
+
 
     def __getitem__(self, key):
         """instance[key]方式访问时调用"""
@@ -52,10 +56,42 @@ class Car(object):
 
     def __setattr__(self, key, value):
         """instance.key方式赋值时，自动调用"""
-        self.__dict__[key] = value
-        if key not in self.__dict__:
-            print('New attribute added.')
+        # _key不存在时，添加
+        if '_keys' not in self.__dict__.keys():
+            self.__dict__['_keys'] = []
 
+        # 存储不以'_'开头的关键字至列表_key
+        if key[0] != '_' and key not in self.__dict__:
+            if key not in self.__getattribute__('_keys'):
+                self.__dict__['_keys'].append(key)
+
+        self.__dict__[key] = value
+
+    def __iter__(self):
+        """定义为可迭代对象"""
+        return self
+
+    def next(self):
+        """
+        迭代器
+        for...i...，next(),list(),.next()方式均可调用该方法
+        iter() -> 对象别名，当前迭代位置不变
+        list() -> 将迭代对象转化为列表的形式
+        next() -> 迭代一次，与.next()方式作用相同
+
+        将类中键值对以元组形式依次输出，关键词存储在_keys中
+        """
+        pos = self.__dict__['_pos']
+        keys = self.__dict__['_keys']
+
+        if len(keys) - pos:
+            key = keys[pos]
+            self.__dict__['_pos'] = pos + 1
+            return key, self.__getattribute__(key)
+
+        else:
+            self.__dict__['_pos'] = 0
+            raise StopIteration
 
     @property
     def odometer(self):
@@ -104,7 +140,11 @@ class Car(object):
 
     def info(self):
         """调用__get_baseinfo方法，并返回"""
-        return self.baseinfo
+        strinfo = ''
+        for key in self.__dict__['_keys']:
+            value = self.__dict__[key]
+            strinfo += '%s:%s ' %(key,value)
+        return strinfo.title()
 
     def get_count1(cls):
         """返回属性__count的值"""
@@ -156,20 +196,36 @@ class ElectricCar(Car):
     Class0(Class1,Class2,....)为多重继承，应避免使用
     不同基类（无继承关系）之间方法可相互调用，这些方法在共同子类中有效，self对象的特性
     """
-    def __init__(self, make, color, model='a', **args):
+
+    def __init__(self, make, color, model='a', **kwargs):
         # 初始化父类方法，未初始化将不能使用父类方法
         super(ElectricCar, self).__init__(make, color)
         self.battery = Battery(model)
-        self._others = args
+        # self._others = kwargs
+        self.__add2dict(kwargs)
 
-    def info(self):
-        """父类方法重构"""
-        # 执行父类方法
-        strinfo = super(ElectricCar, self).info()
-        for key, value in self._others.items():
-            strinfo = "%s %s-%s " % (strinfo, key, value)
+    def __add2dict(self,dict):
+        """
+        将动态字典转换为对象属性
 
-        return "%s %s " %(strinfo.title(), self.battery.size())
+        调用父类的__setattr__方法，以更新对象的属性列表
+        """
+        for key,value in dict.items():
+            self.__setattr__(key,value)
+
+    # def info(self):
+    #     """父类方法重构"""
+    #     # 执行父类方法
+    #     strinfo = ''
+    #     for key,value in self.__dict__['_keylist'].items():
+    #         strinfo = '%s:%s ' %(key.title(),value)
+    #
+    #
+    #     strinfo = super(ElectricCar, self).info()
+    #     for key, value in self._others.items():
+    #         strinfo = "%s %s:%s " % (strinfo, key, value)
+    #
+    #     return "%s %s " %(strinfo.title(), self.battery.size())
 
 
 class Dict2Object(object):
@@ -190,7 +246,6 @@ if __name__ == '__main__':
     n1 = mycar1.get_count1()    # 2, 通过实例对象调用类方法
     n2 = Car.get_count2()       # 2, 直接通过类名调用类方法
     n3 = Car.get_count3()       # 2, 直接通过类调用静态方法
-    print(n1,n2,n3)
 
     """字典转为对象"""
     odict = Dict2Object()   # odict.a = 1
@@ -214,7 +269,9 @@ if __name__ == '__main__':
 
     s7 = mycar2.__class__               # <class 'Car'>
     s8 = s7('m', '3')                   # 通过__class__获取类对象名，可新建类
+
     #mycar1.info = 'a','b'
-    print(mycar2.jkjkjk)
+    for iter in mycar1:
+        s9 = iter
 
-
+    print(range(10))
