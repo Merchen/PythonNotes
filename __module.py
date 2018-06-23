@@ -38,12 +38,18 @@
 # import os
 # import sys
 
-# sys.argv        包含向Python解释器传递的参数，包括脚本名
-# sys.exit        退出主程序
+# sys.argv          包含向Python解释器传递的参数，包括脚本名
+# sys.exit          退出主程序
 
-# os.system()     执行程序，受限于空白(必须使用双引号包围)，os.system(r'C:\"Program Files"\"Internet Explorer"\iexplore.exe')
-# os.startfile    执行程序，不受限空白,os.startfile(r'C:\Program Files\Internet Explorer\iexplore.exe')
+# os.system()       执行程序，受限于空白(必须使用双引号包围)，os.system(r'C:\"Program Files"\"Internet Explorer"\iexplore.exe')
+# os.startfile      执行程序，不受限空白,os.startfile(r'C:\Program Files\Internet Explorer\iexplore.exe')
 
+# os.path.listdir('dir')        获取目录下的全部文件名称
+# os.path.walk('dir')           递归获取目录下所有文件和目录名称，返回元组path,dirnames,filenames
+# os.path.basename(__file__)    返回当前文件名称
+# os.path.dirname(__file__)     返回当前文件所在目录（不含文件名）
+# os.path.abspath(__file__)     返回当前文件绝地路径（含文件名）
+# os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))    # 获取上级目录
 
 ########################################################################
 ###  heap

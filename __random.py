@@ -16,3 +16,4 @@ choice(seq)                 # 随机返回序列seq中的一个元素
 shuffle(seq)                # 就地打乱序列seq, <type 'list'>: [7, 3, 8, 9, 1, 15]
 sample(seq,5)               # 随机返回序列seq中5个不同位置的元素
 
+

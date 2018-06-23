@@ -48,6 +48,10 @@ globals()['G_NUM'] = 10     # G_NUM = 20
 
 add_doc = add.__doc__       # Function Manual,help(add)将显示更多信息
 
+# -------------------------------------------------------------------------
+"""dir"""
+# dir(module)   返回模块全部可用方法名称列表
+# dir(int)      返回int对象可用方法名称列表
 
 # -------------------------------------------------------------------------
 """exec与eval"""
@@ -64,8 +68,8 @@ eval('x*y', scope)      # 计算字符串表达式，并返回结果值,6
 # lambda parameters:express 冒号前为参数（可以有多个），冒号右边为返回值，等价于返回一种函数指针
 
 def func1(x): return x * x              # lambda x:x*x
-
 m1 = map(func1,[1, 2, 3 ,4])            # [1, 4, 9， 16]
+
 m2 = map(lambda x:x*x, [1, 2, 3 ,4])    # [1, 4, 9， 16]
 m3 = [x*x for x in [1, 2, 3 ,4]]        # [1, 4, 9， 16]
 
@@ -76,7 +80,6 @@ m3 = [x*x for x in [1, 2, 3 ,4]]        # [1, 4, 9， 16]
 # reduce(function, sequence[, initial]) -> value    使用函数返回值和列表中未迭代元素，执行函数（二元参数）功能
 
 def func2(x, y): return x + y       # lambda x,y:x+y
-
 m4 = reduce(func2,[1, 2, 3 ,4])     # 10
 
 
@@ -86,6 +89,5 @@ m4 = reduce(func2,[1, 2, 3 ,4])     # 10
 # filter(function or None, sequence) -> list, tuple, or string      对各元素执行函数，返回结果为True的元素组成的列表等
 
 def func3(x):  return x > 2                 # lambda x:x>2
-
 print(filter(func3,[1, 2, 3 ,4]))           # [3, 4]
 print([x for x in [1, 2, 3 ,4] if x > 2])   # [3, 4]

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-""""""
+"""
+字典、集合、列表可引用
+"""
 
 # ----------------------------------------------------------------------
 """
@@ -32,6 +34,9 @@ co = color[-1]          # 复制最后一个元素
 co = color[:]           # 列表复制全部
 co = color[1:3]         # 切片复制2个元素
 co = color[1:5:2]       # 步长为2，复制位于[1,3]的两个元素
+
+arr = range(20)
+new_arr = [arr[i] for i in (7, 11, 13)]   # 选取多个位置元素
 
 # 遍历
 for co in color:  # 普通遍历
@@ -87,8 +92,9 @@ d = a|b             # 合并集合,a&b求交集,a^b就差集,a-b,b-a
 items = [('name', 'Gumby'), ('age', 35)]
 d = dict(items)     # 通过字典函数把其他数据类型映射为字典，d={'age':35,'name':'Gumby'}
 c = d               # 字典引用/别名，通过c可操作d
-c = d.copy()        # 浅复制,可能与python3不同
+c = d.copy()        # python27深复制,可能与python3不同
 c = dict.fromkeys(['a', '1'], None)  # 生成键值为空的字典，c={'age':None,'name':None}
+c = dict(zip(a,b))  # 两个列表组合成字典
 
 value = d['name']  # 通过键访问字典值，键名不存在时报错
 value = d.get('name', None)  # get方法获取键值，键名不存在时返回None

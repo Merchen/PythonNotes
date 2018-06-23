@@ -29,7 +29,7 @@ def isprime(number):
     return False
 
 
-def get_pirems():
+def get_priems():
     """
     获取大于等于发送数字的素数
     :return:
@@ -43,7 +43,7 @@ def get_pirems():
             msgnum += 1
 
 # -------------------------------------------------------------------------
-f = get_pirems()
+f = get_priems()
 f.send(None)        # 遇到第一个yield表达式时暂停，并返回yield的值
 num = f.send(10)    # 将send参数(10)赋给yield表达式左值，返回第二个yield的值(11)
 # -------------------------------------------------------------------------

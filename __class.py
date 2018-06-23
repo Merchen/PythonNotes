@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 
 from warnings import warn
-import os.path as mypath
 
-"""
-__xxx__,系统专用标识,可在类外部使用instance.__xxx__形式调用
-__xxx，伪私有声明，不可在类外部使用instance.__xxx形式调用
-_xxx,伪保护声明，仅类实例和子类实例可以直接访问，不可通过import方式载入
-
-对象实例的属性可映射到__dict__中的key
-对象实例的属性查找顺序遵循--实例对象本身 --> 类 --> 类的父类
-"""
+# __xxx__,系统专用标识,可在类外部使用instance.__xxx__形式调用
+# __xxx，伪私有声明，不可在类外部使用instance.__xxx形式调用
+# _xxx,伪保护声明，仅类实例和子类实例可以直接访问，不可通过import方式载入
+#
+# 对象实例的属性可映射到__dict__中的key
+# 对象实例的属性查找顺序遵循--实例对象本身 --> 类 --> 类的父类
+#
 
 # 被保护类型，其他文件不同通过import方式载入
 _MODEL_BATTERY = {"A": 70, "S": 100}
+
 _MYDICT = {"a": 1, "b": 2, "c": 3}
 
 
-
+###########################################################
+###  Car
+###########################################################
 class Car(object):
     """"""
     # 类变量，统计汽车总数,该变量可通过类直接引用
@@ -38,6 +39,9 @@ class Car(object):
         """析构函数"""
         del self
 
+    def __str__(self):
+        """字符串形式引用时的返回值"""
+        return 'Class Car'
 
     def __getitem__(self, key):
         """instance[key]方式访问时调用"""
@@ -52,11 +56,11 @@ class Car(object):
 
     def __getattr__(self, key):
         """instance.key方式访问不存在的属性时调用，影响hasattr(instance,name)的结果"""
+        print(key)
         raise AttributeError("'%s' attribute not exist!" %key)
 
     def __setattr__(self, key, value):
         """instance.key方式赋值时，自动调用"""
-        # _key不存在时，添加
         if '_keys' not in self.__dict__.keys():
             self.__dict__['_keys'] = []
 
@@ -64,7 +68,6 @@ class Car(object):
         if key[0] != '_' and key not in self.__dict__:
             if key not in self.__getattribute__('_keys'):
                 self.__dict__['_keys'].append(key)
-
         self.__dict__[key] = value
 
     def __iter__(self):
@@ -155,9 +158,7 @@ class Car(object):
 
     @classmethod
     def get_count2(cls):
-        """
-        类成员方法，含参数
-        """
+        """类成员方法，含参数"""
         return cls.__count
 
     @staticmethod
@@ -170,7 +171,9 @@ class Car(object):
         # return Car.__count
         return globals()['Car'].__count
 
-
+###########################################################
+###  Battery
+###########################################################
 class Battery(object):
     """"""
     def __init__(self, model):
@@ -188,7 +191,9 @@ class Battery(object):
     def size(self):
         return '%sKwh' %self.__battery_size
 
-
+###########################################################
+###  ElectricCar
+###########################################################
 class ElectricCar(Car):
     """
     电动车类，继承Car类
@@ -196,7 +201,6 @@ class ElectricCar(Car):
     Class0(Class1,Class2,....)为多重继承，应避免使用
     不同基类（无继承关系）之间方法可相互调用，这些方法在共同子类中有效，self对象的特性
     """
-
     def __init__(self, make, color, model='a', **kwargs):
         # 初始化父类方法，未初始化将不能使用父类方法
         super(ElectricCar, self).__init__(make, color)
@@ -213,27 +217,16 @@ class ElectricCar(Car):
         for key,value in dict.items():
             self.__setattr__(key,value)
 
-    # def info(self):
-    #     """父类方法重构"""
-    #     # 执行父类方法
-    #     strinfo = ''
-    #     for key,value in self.__dict__['_keylist'].items():
-    #         strinfo = '%s:%s ' %(key.title(),value)
-    #
-    #
-    #     strinfo = super(ElectricCar, self).info()
-    #     for key, value in self._others.items():
-    #         strinfo = "%s %s:%s " % (strinfo, key, value)
-    #
-    #     return "%s %s " %(strinfo.title(), self.battery.size())
 
-
+###########################################################
+###  Dict2Object
+###########################################################
 class Dict2Object(object):
     """利用__dict__内置属性，将字典变量添加至类属性"""
     def __init__(self):
         self.__dict__.update(_MYDICT)
 
-
+#---------------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
     mycar1 = ElectricCar('tesla', 'black', model='s', year=2016)
     mycar2 = Car('bmw', 'grey')
@@ -274,4 +267,7 @@ if __name__ == '__main__':
     for iter in mycar1:
         s9 = iter
 
-    print(range(10))
+    """__str__"""
+    print(mycar1)
+
+

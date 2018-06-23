@@ -77,7 +77,8 @@ def append_syspath(path=ROOT_PATH):
 
 
 if __name__ == '__main__':
+    pass
 
-    # serch_file_contents(FATHER_PATH,RE_QUERY,FILENAME_CONTAINS)
-    append_syspath()
-    print(sys.path)
+    serch_file_contents(r'C:\\','','sys.py')
+    # append_syspath()
+#     # print(sys.path)
