@@ -71,12 +71,13 @@ class Car(object):
         self.__dict__[key] = value
 
     def __iter__(self):
-        """定义为可迭代对象"""
+        """定义为可迭代对象Iterable"""
+        # 数据类型如list，truple，dict，str都是Itrable不是Iterator, 可以通过iter()函数获得一个Iterator对象
         return self
 
     def next(self):
         """
-        迭代器
+        迭代器Iterator
         for...i...，next(),list(),.next()方式均可调用该方法
         iter() -> 对象别名，当前迭代位置不变
         list() -> 将迭代对象转化为列表的形式
