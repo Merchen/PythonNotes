@@ -138,7 +138,6 @@ class ZmqClient(RpcObject):
             data = self.unpack(pdata)
             print(data)
 
-
 if __name__ == '__main__':
 
     server = ZmqServer()

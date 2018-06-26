@@ -79,6 +79,6 @@ def append_syspath(path=ROOT_PATH):
 if __name__ == '__main__':
     pass
 
-    serch_file_contents(r'C:\\','','sys.py')
+    serch_file_contents(r'C:\Users\MERLIN\Desktop\Python\vntrader','EVENT_CTA_LOG','py')
     # append_syspath()
 #     # print(sys.path)
