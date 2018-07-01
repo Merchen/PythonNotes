@@ -181,7 +181,6 @@ class Battery(object):
         model = model.title()
         try:
             self.__battery_size = _MODEL_BATTERY[model]
-
         except KeyError:
             self.__battery_size = 0
             raise ("Error Model!")

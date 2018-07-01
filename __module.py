@@ -41,6 +41,7 @@ def moduleSysOs():
     import os,sys
     sys.argv()                      # 包含向Python解释器传递的参数，包括脚本名
     # sys.exit()                    # 退出主程序
+    sys.path.append('../')          # 加入上级目录至编译器环境变量
 
     os.system("")                   # 执行程序，受限于空白(必须使用双引号包围)，
                                     # os.system(r'C:\"Program Files"\"Internet Explorer"\iexplore.exe')
@@ -51,7 +52,8 @@ def moduleSysOs():
     os.path.basename(__file__)      # 返回当前文件名称
     os.path.dirname(__file__)       # 返回当前文件所在目录（不含文件名）
     os.path.abspath(__file__)       # 返回当前文件绝地路径（含文件名）
-    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))    # 获取上级目录
+    os.path.abspath('..')           # 返回父级目录绝对路径
+    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))    # 返回父级目录绝对路径
 
 
 ########################################################################
