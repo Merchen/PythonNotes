@@ -519,11 +519,6 @@ mysql = MySQLConnector(host='127.0.0.1',port=3306,user= 'root',password='123456'
 mysql.conn.select_db('mydb')
 # db = mysql['mydb']
 mysql.commit()
-# db.insert(insert1)
 # print db.getDBTables()
 # print db.getTableColumns('customers')
 # print db.read2pandas(insert1)
-
-
-
-
