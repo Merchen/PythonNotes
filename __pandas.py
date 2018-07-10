@@ -371,6 +371,12 @@ def fun4():
     6  two   4
     """
 
+    # 查看某列非重复值
+    df['k1'].unique()
+    """
+    array(['one', 'two'], dtype=object)
+    """
+
     # 查看各行是否重复
     df.duplicated()
     """
@@ -480,6 +486,8 @@ def fun6():
     p3   Zhw   CHINA   26      F      NaN
     """
     df['rank'] = df['country'].map(lambda x:map_dict[x.lower()]) # 字典映射添加列
+    map_dict1 = {'CHINA': 'A', 'US': 'B', 'JAPAN': 'C', 'CANADA': 'D'}
+    df['rank'] = df['country'].map(map_dict1)
     """
         name country  age gender  address rank
     p1  John      US   26      M      NaN    B
@@ -554,7 +562,7 @@ def fun7():
     """
 
     # 重置行序, 非就地
-    df.reindex(['p1', 'p3', 'p2'], inplace=False)
+    df.reindex(['p1', 'p3', 'p2'])
     """
         name country  age
     p1  John      US   26
@@ -563,7 +571,7 @@ def fun7():
     """
 
     # 按index(列)升序排列，返回副本
-    df.sort_index(axis=0, inplace=False)
+    df.sort_index(level=0, axis=0, inplace=False)
     """
         name country  age
     p1  John      US   26
@@ -984,7 +992,7 @@ def fun10():
     """
 
     # 旋转列为索引
-    df.set_index(['date', 'item']).unstack('item')
+    df.set_index(['date', 'item']).unstack('item')  # 将不同的item展开为不同的列
     df.pivot('date', 'item', 'value')
     """
     item        infl   realgdp  unemp
@@ -1173,60 +1181,255 @@ def fun14():
                     'data1':np.random.randn(5), 'data2':np.random.randn(5)})
     """
           data1     data2 key1 key2
-    0 -0.188994 -1.382087    a  one
-    1 -0.212191 -0.125047    a  two
-    2 -0.934045  0.282862    b  one
-    3 -0.813512 -0.179587    b  two
-    4  0.782382 -2.294718    a  one    
+    0 -0.920623  1.020532    a  one
+    1 -1.065934 -0.137086    a  two
+    2  0.006132  1.514599    b  one
+    3  0.661261 -0.727769    b  two
+    4 -0.589670  1.618126    a  one  
     """
 
-    # 分组Series
+    # Series分组, 以下结果一致
     grouped = df['data1'].groupby(df['key1'])
+    m1 = grouped.mean()
+    m2 = df.groupby('key1')['data1'].mean()
+    m3 = df.groupby('key1').mean()['data1']
+    """
+    key1
+    a   -0.858742
+    b    0.333696
+    """
+    grouped  = df['data1'].groupby(Series(['b']))
     grouped.mean()
     """
-    a    0.127066
-    b   -0.873778
+    b   -0.920623
+    """
+    grouped = df['data1'].groupby([df['key1'], df['key2']])
+    grouped.mean()
+    """
+    key1  key2
+    a     one    -0.755147
+          two    -1.065934
+    b     one     0.006132
+          two     0.661261
     """
 
-    # 分组DataFrame
+    # DataFrame分组
     grouped = df.groupby('key1')
-    grouped.mean()
+    grouped.mean().add_prefix('mean_')
     """
-             data1     data2
-    key1                    
-    a     0.127066 -1.267284
-    b    -0.873778  0.051638    
+          mean_data1  mean_data2
+    key1                        
+    a      -0.858742    0.833857
+    b       0.333697    0.393415 
     """
     grouped = df.groupby(['key1','key2'])
-    grouped.mean()
+    means = grouped.mean()
     """
                   data1     data2
     key1 key2                    
-    a    one   0.296694 -1.838402
-         two  -0.212191 -0.125047
-    b    one  -0.934045  0.282862
-         two  -0.813512 -0.179587
+    a    one  -0.755147  1.319329
+         two  -1.065934 -0.137086
+    b    one   0.006132  1.514599
+         two   0.661261 -0.727769
+    """
+    means.unstack('key2')
+    """
+             data1               data2          
+    key2       one       two       one       two
+    key1                                        
+    a    -0.755147 -1.065934  1.319329 -0.137086
+    b     0.006132  0.661261  1.514599 -0.727769
     """
 
-    df1 = df.set_index(['key1','key2']).sortlevel([0, 1])
-    index = df1.index
+    # 分组迭代
+    df.set_index(['key1','key2']).sort_index(level='key1')
+    """
+                  data1     data2
+    key1 key2                    
+    a    one  -0.920623  1.020532
+         one  -0.589670  1.618126
+         two  -1.065934 -0.137086
+    b    one   0.006132  1.514599
+         two   0.661261 -0.727769
+    """
+    grouped = df.groupby(['key1', 'key2'])
+    # 每次迭代返回含两个元素的元组, 0位为标签，1位为值
+    res = [gp for gp in grouped]
+    t0 = res[0][0]
+    """
+    ('a', 'one')
+    """
+    t1 = res[0][1]
+    """
+          data1     data2 key1 key2
+    0 -0.920623  1.020532    a  one
+    4 -0.589670  1.618126    a  one
+    """
 
-    dic={}
-    for level0 in index.levels[0]:
-        tmp0 = {}
-        for level1 in index.levels[1]:
-            sr = df1.loc[level0, level1].mean()
-            tmp1 = {}
-            for id in sr.index:
-                tmp1[id] = sr[id]
-            tmp0[level1] = tmp1
-        dic[level0] = tmp0
+    # 返回分组字典
+    group1 = df.groupby(['key1'])
+    group2 = df.groupby(['key1', 'key2'])
+    a = dict(list(group1))['a']
+    """
+         data1     data2 key1 key2
+    0 -0.920623  1.020532    a  one
+    1 -1.065934 -0.137086    a  two
+    4 -0.589670  1.618126    a  one 
+    """
+    b = dict(list(group1))['b']
+    """
+          data1     data2 key1 key2
+    2  0.006132  1.514599    b  one
+    3  0.661261 -0.727769    b  two
+    """
+    a1 = dict(list(group2))['a','one']
+    """
+          data1     data2 key1 key2
+    0 -0.920623  1.020532    a  one
+    4 -0.589670  1.618126    a  one
+    """
 
+    # 使用字典分组，以下结果一致（合并两列）
+    mapping = {'data1':'sum', 'data2':'sum', 'key1':'char'}
+    sum1 = df.groupby(mapping, axis=1).sum()['sum']
+    sum2 = df.apply(lambda x: x['data1'] + x['data2'], axis=1)
+    """
+    0    0.099909
+    1   -1.203020
+    2    1.520731
+    3   -0.066509
+    4    1.028456
+    """
 
+    # 对索引进行函数处理后分组
+    df.index = pd.Index(['Joe', 'Steve', 'Wes', 'Jim', 'Travis'], name='id')
+    """
+               data1     data2 key1 key2
+    id                                  
+    Joe    -0.920623  1.020532    a  one
+    Steve  -1.065934 -0.137086    a  two
+    Wes     0.006132  1.514599    b  one
+    Jim     0.661261 -0.727769    b  two
+    Travis -0.589670  1.618126    a  one
+    """
+    df.groupby(len).sum()
+    """
+          data1     data2
+    3  0.527684  0.578207
+    5 -0.246603 -0.127241
+    6  1.217305 -0.269157
+    """
+    df.groupby([len, 'key2']).sum()
+    """
+               data1     data2
+      key2                    
+    3 one  -0.615099  1.452613
+      two   1.142783 -0.874407
+    5 two  -0.246603 -0.127241
+    6 one   1.217305 -0.269157
+    """
 
+    df = DataFrame({'key1':list('aabba'), 'key2':['one', 'two', 'one', 'two', 'one'],
+                    'data1':    [-0.920623, -1.065934, 0.006132, 0.661261, -0.589670],
+                    'data2':    [1.020532, -0.137086, 1.514599, -0.727769, 1.618126]})
 
+    """
+    >>> df.set_index(['key1','key2']).sort_index(level='key1')
+                  data1     data2
+    key1 key2                    
+    a    one  -0.920623  1.020532
+         one  -0.589670  1.618126
+         two  -1.065934 -0.137086
+    b    one   0.006132  1.514599
+         two   0.661261 -0.727769
+    """
 
+    # 分组函数，对分组结果进行函数处理
+    fun1 = lambda x:x.max() - x.min()
+    df.groupby(['key1']).agg(fun1)
+    """
+             data1     data2
+    key1                    
+    a     0.476264  1.755212
+    b     0.655129  2.242368
+    """
+    df.groupby(['key1', 'key2']).agg(fun1)
+    """
+                  data1     data2
+    key1 key2                    
+    a    one   0.330953  0.597594
+         two   0.000000  0.000000
+    b    one   0.000000  0.000000
+         two   0.000000  0.000000
+    """
+    df.groupby(['key1', 'key2']).agg('mean')
+    """
+                  data1     data2
+    key1 key2                    
+    a    one  -0.755146  1.319329
+         two  -1.065934 -0.137086
+    b    one   0.006132  1.514599
+         two   0.661261 -0.727769
+    """
+    df.groupby(['key1', 'key2'])['data1'].agg('mean')
+    """
+    key1  key2
+    a     one    -0.755146
+          two    -1.065934
+    b     one     0.006132
+          two     0.661261
+    """
+    # 使用多个分组函数
+    df.groupby(['key1', 'key2'])['data1'].agg(['mean', fun1])
+    """
+                   mean  <lambda>
+    key1 key2                    
+    a    one  -0.755146  0.330953
+         two  -1.065934  0.000000
+    b    one   0.006132  0.000000
+         two   0.661261  0.000000
+    """
+    # 使用函数分组且重命名分组名
+    df.groupby(['key1', 'key2'])['data1'].agg([('col1', 'mean'), ('col2', fun1)])
+    """
+                   col1      col2
+    key1 key2                    
+    a    one  -0.755146  0.330953
+         two  -1.065934  0.000000
+    b    one   0.006132  0.000000
+         two   0.661261  0.000000
+    """
 
-    df2 = df1.loc['a','one']
-    df2.mean()
-fun14()
+    # 分组apply，对所有分组应用函数功能
+    def top(df, n=2, column='data1'):
+        return df.sort_index(by=column)[-n:]
+    # 所有分组中'data1'列最大的两行
+    df.groupby('key1').apply(top,n=2,column='data1')
+    """
+               data1     data2 key1 key2
+    key1                                
+    a    0 -0.920623  1.020532    a  one
+         4 -0.589670  1.618126    a  one
+    b    2  0.006132  1.514599    b  one
+         3  0.661261 -0.727769    b  two
+    """
+    df.groupby('key1', group_keys=False).apply(top, n=2, column='data1')
+    """
+          data1     data2 key1 key2
+    0 -0.920623  1.020532    a  one
+    4 -0.589670  1.618126    a  one
+    2  0.006132  1.514599    b  one
+    3  0.661261 -0.727769    b  two
+    """
+
+    # 桶分析，某列的前3行、4和5行分别作为不同组，计算最大值、最小值
+    def get_stats(group):
+        return {'min':group.min(), 'max':group.max()}
+    group_key  = ['1']*3  + ['2']*2
+    df.groupby(group_key)['data1'].apply(get_stats).unstack(level=1)
+    """
+            max       min
+    1  0.006132 -1.065934
+    2  0.661261 -0.589670
+    """
+
