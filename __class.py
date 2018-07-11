@@ -43,6 +43,10 @@ class Car(object):
         """字符串形式引用时的返回值"""
         return 'Class Car'
 
+    def __call__(self, *args, **kwargs):
+        """Car()()形式时调用"""
+        return 'call function'
+
     def __getitem__(self, key):
         """instance[key]方式访问时调用"""
         try:
@@ -270,4 +274,10 @@ if __name__ == '__main__':
     """__str__"""
     print(mycar1)
 
+    """__call__"""
+    print(mycar1())
+
+    """类的引用"""
+    print(mycar1.__class__)
+    print(ElectricCar)
 
