@@ -2,10 +2,7 @@
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
-"""
-表格型结构, 面向行列操作平衡
-列为一个Series
-"""
+import pytz
 
 COLUMNS = ['name', 'country', 'age']
 INDEX = ['p1', 'p2', 'p3']
@@ -665,7 +662,7 @@ def fun8():
 
     # 由第二层索引（level=1或'key1'）升序排列, 默认非就地排序
     df.sortlevel(level=1, inplace=False)
-    df.sortlevel(level='key1', inplace=False)
+    df.sortlevel(level=0, inplace=False)
     """
     columns    c1  c2
     key0 key1        
@@ -1433,3 +1430,201 @@ def fun14():
     2  0.661261 -0.589670
     """
 
+
+########################################################################
+### 时间序列
+########################################################################
+def fun15():
+    """
+    pandas.to_datetime(arg, errors='raise', dayfirst=False, yearfirst=False,
+        utc=None, box=True, format=None, exact=True, unit=None,
+        infer_datetime_format=False, origin='unix', cache=False)
+
+    Parameters
+    ----------
+    arg : integer, float, string, datetime, list, tuple, 1-d array, Series
+    format : 指定输入格式（默认自动匹配），应显示声明
+    exact : 是否准确匹配format与目标串，True准确匹配，False任意匹配
+
+    pd.date_range(start=None, end=None, periods=None, freq=None, tz=None,
+        normalize=False, name=None, closed=None, **kwargs)
+
+    Parameters
+    ----------
+    start : 时间序列起始值
+    end : 时间序列结束值
+    periods : 生成数目
+    freq: 生成元素间隔方式
+    normalize : 规范化起始结束日期至00:00:00 23:59:59
+    """
+    pd.to_datetime('2017-01-02 03:00:00', format='%Y-%m-%d', utc=True)
+    """
+    Timestamp('2017-01-02 03:00:00+0000', tz='UTC')
+    """
+
+    # 时间戳
+    pd.to_datetime(1490195805, unit='s')
+    """
+    Timestamp('2017-03-22 15:16:45')
+    """
+    pd.to_datetime(1490195805433502912, unit='ns')
+    """
+    Timestamp('2017-03-22 15:16:45.433502912')
+    """
+
+    # 时间字符串序列
+    datestrs =['7/6/2011', '8/6/2011', '9/6/2011']
+    pd.to_datetime(datestrs, format="%m/%d/%Y")
+    """
+    DatetimeIndex(['2011-07-06', '2011-08-06', '2011-09-06'], 
+            dtype='datetime64[ns]', freq=None)
+    """
+    pd.to_datetime(datestrs, format="%d/%m/%Y")
+    """
+    DatetimeIndex(['2011-06-07', '2011-06-08', '2011-06-09'], 
+            dtype='datetime64[ns]', freq=None)
+    """
+    datestrs = ['2011-07-06', '2011-08-06', '2011-09-06']
+    pd.to_datetime(datestrs, format="%Y-%m-%d")
+    """
+    DatetimeIndex(['2011-07-06', '2011-08-06', '2011-09-06'], 
+                dtype='datetime64[ns]', freq=None)
+    """
+
+    # 日期序列索引
+    datestrs = ['2018-07-06', '2018-08-06', '2018-09-06']
+    rng = pd.Index(pd.to_datetime(datestrs),name='date')
+    dfdate = pd.DataFrame(np.arange(6).reshape((3,2)), index=rng, columns=['a', 'b'])
+    """'
+                a  b
+    2018-07-06  0  1
+    2018-08-06  2  3
+    2018-09-06  4  5
+    """
+    row = dfdate.loc['20180706']
+    """
+    a    0
+    b    1
+    """
+    rows = dfdate.loc['07/06/2018':'08/06/2018']
+    """
+                a  b
+    date            
+    2018-07-06  0  1
+    2018-08-06  2  3
+    """
+
+    # 生成日期序列
+    rng = pd.date_range(start='20180101 10:00:00', periods=3, freq='2H')
+    """
+    DatetimeIndex(['2018-01-01 10:00:00', '2018-01-01 12:00:00', '2018-01-01 14:00:00'],
+                  dtype='datetime64[ns]', freq='2H')
+    """
+    dfhour = pd.DataFrame(np.arange(6).reshape((3,2)), index=rng)
+    """
+                         0  1
+    2018-01-01 10:00:00  0  1
+    2018-01-01 12:00:00  2  3
+    2018-01-01 14:00:00  4  5
+    """
+    # 重采样
+    dfhour.resample('1H').mean()
+    """
+                           0    1
+    2018-01-01 10:00:00  0.0  1.0
+    2018-01-01 11:00:00  NaN  NaN
+    2018-01-01 12:00:00  2.0  3.0
+    2018-01-01 13:00:00  NaN  NaN
+    2018-01-01 14:00:00  4.0  5.0
+    """
+    # 超前/滞后移动数据
+    dfhour.shift(1)
+    """
+                           0    1
+    2018-01-01 10:00:00  NaN  NaN
+    2018-01-01 12:00:00  0.0  1.0
+    2018-01-01 14:00:00  2.0  3.0
+    """
+    # 超前/滞后移动索引
+    dfhour.shift(1,'1D')
+    """
+                         0  1
+    2018-01-02 10:00:00  0  1
+    2018-01-02 12:00:00  2  3
+    2018-01-02 14:00:00  4  5
+    """
+
+    # 时区转换
+    # pytz.common_timezones[:] 查看时区
+    rng = pd.date_range('20180714', '20180715',periods=3,
+                        tz='Asia/Shanghai')     # 生成时间序列， 上海时区Asia/Shanghai
+    """
+    DatetimeIndex(['2018-07-14 00:00:00+08:00', '2018-07-14 12:00:00+08:00',
+                   '2018-07-15 00:00:00+08:00'],
+                  dtype='datetime64[ns, Asia/Shanghai]', freq=None)
+    """
+    rng.tz_convert('UTC')                       # 转换为UTC时间
+    """
+    DatetimeIndex(['2018-07-13 16:00:00+00:00', '2018-07-14 04:00:00+00:00',
+               '2018-07-14 16:00:00+00:00'],
+              dtype='datetime64[ns, UTC]', freq=None)
+    """
+
+    # Period整段时间范围
+    pd.period_range('20180702','20181220',freq='M')
+    """
+    PeriodIndex(['2018-07', '2018-08', '2018-09', '2018-10', '2018-11', '2018-12'], 
+        dtype='period[M]', freq='M')
+    """
+    pd.date_range('07/14/2018 06:00:00',periods=3,freq='12H').to_period(freq='D')
+    """
+    PeriodIndex(['2018-07-14', '2018-07-14', '2018-07-15'], dtype='period[D]', freq='D')
+    """
+
+    # 重采样/频率统计
+    rng = pd.date_range('20180701', periods=10, freq='20D')
+    df = pd.DataFrame(np.random.rand(10,2), index=rng)
+    """
+                       0         1
+    2018-07-01  0.043837  0.972748
+    2018-07-21  0.144425  0.295941
+    2018-08-10  0.377654  0.141837
+    2018-08-30  0.673730  0.145267
+    2018-09-19  0.916249  0.966635
+    2018-10-09  0.528616  0.030620
+    2018-10-29  0.455784  0.522004
+    2018-11-18  0.177691  0.723932
+    2018-12-08  0.987019  0.322120
+    2018-12-28  0.329621  0.684657
+    """
+    df.resample(rule='M', closed='left').sum()
+    """
+                       0         1
+    2018-07-31  0.188263  1.268689
+    2018-08-31  1.051384  0.287104
+    2018-09-30  0.916249  0.966635
+    2018-10-31  0.984400  0.552624
+    2018-11-30  0.177691  0.723932
+    2018-12-31  1.316640  1.006777
+    """
+    df.resample(rule='2M', kind='period').sum()
+    """
+                    0         1
+    2018-07  1.239646  1.555793
+    2018-09  1.900650  1.519258
+    2018-11  1.494331  1.730709
+    """
+    df.resample(rule='2M', closed='left').sum()
+    """
+                       0         1
+    2018-08-31  1.239646  1.555793
+    2018-10-31  1.900650  1.519258
+    2018-12-31  1.494331  1.730709
+    """
+    df.resample(rule='2M', closed='left', label='left').sum()
+    """
+                       0         1
+    2018-06-30  1.239646  1.555793
+    2018-08-31  1.900650  1.519258
+    2018-10-31  1.494331  1.730709
+    """

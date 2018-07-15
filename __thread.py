@@ -5,7 +5,7 @@
 进程：独立开辟内存
 线程：共享同一进程的变量空间
 """
-from Queue import Queue
+from queue import Queue
 from collections import defaultdict
 from threading import Thread
 from time import sleep

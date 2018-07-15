@@ -5,7 +5,11 @@
 #
 configurations: Run with python console --右边显示变量信息
 
+show quick documentation on mouse move 1000ms   --自动显示变量、函数文档注释
 命令行状态下SHIFT+ENTER可换行
+
+
+字体：Candara, Lucida Sans Unicode, DejaVu Sans Mono
 
 
 ###########################################################

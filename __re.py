@@ -116,7 +116,7 @@ def templates():
             return str(eval(code,scope))
         except SyntaxError:
             # 添加至字典并返回空串，被匹配的部分被替换为空串
-            exec code in scope
+            exec(code in scope)
             return ''
     text = '[x = 3][y = 1]' \
            'this sum of [x] and [y] is [x + y]'

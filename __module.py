@@ -45,7 +45,7 @@ def moduleSysOs():
 
     os.system("")                   # 执行程序，受限于空白(必须使用双引号包围)，
                                     # os.system(r'C:\"Program Files"\"Internet Explorer"\iexplore.exe')
-    os.startfile('')                # 执行程序，不受限空白,os.startfile(r'C:\Program Files\Internet Explorer\iexplore.exe')
+    os.startfile('')                #0 执行程序，不受限空白,os.startfile(r'C:\Program Files\Internet Explorer\iexplore.exe')
 
     os.listdir('dir')               # 获取目录下的全部文件名称
     os.path.walk('dir')             # 递归获取目录下所有文件和目录名称，返回元组path,dirnames,filenames
@@ -73,97 +73,6 @@ def moduleHeapq():
 
 
 ########################################################################
-###  deque   OrderedDict    Counter
-########################################################################
-def moduleConllection():
-    from collections import Counter,deque,OrderedDict
-    ### deque--双端队列(doubel-ended queue),实现从列头/尾快速取出、队列旋转
-    dq = deque()                    # 可直接在此初始化
-    dq.extend([6,0,1,2,3])
-    dq.append(4)                    # 右端添加元素, deque([6, 0, 1, 2, 3, 4])
-    dq.appendleft(5)                # 左端添加元素, deque([5, 6, 0, 1, 2, 3, 4])
-    dq.rotate(-2)                   # 旋转/整体移动.deque([0, 1, 2, 3, 4, 5, 6])
-
-    ### Counter--计数器
-    cou = Counter()
-    sub = Counter('aabb')           # Counter({'a': 2, 'b': 2})
-    cou.update('abccababb')         # 更新，Counter({'b': 4, 'a': 3, 'c': 2})
-    res = cou.most_common(2)        # 数目最多的元素，[('b', 4), ('a', 3)]
-    cou.subtract(sub)               # 减法，Counter({'c': 2, 'b': 2, 'a': 1})
-    it = cou.elements()             # 返回迭代器
-
-    ### OrderedDict--有序字典，利用列表存储键名
-    items = ('a',1),('b',2),('c',3)
-    odic = OrderedDict(items)       # OrderedDict([('a', 1), ('b', 2), ('c', 3)])
-    odic.keys()                     # ['a', 'b', 'c']
-    odic.popitem()                  # OrderedDict([('a', 1), ('b', 2)])
-
-
-########################################################################
-###  time   Datetime
-########################################################################
-def moduleTime():
-    import time as tm
-    from datetime import datetime, date, time, timedelta
-    SECS = 1529239510.737           # 自1970-01-01 00:00:00 UTC以来的秒数
-
-    # 日期元组字段(0,Year),(1,Month),(2,Day)，(3,Hour)，(4,Minute)，(5,Second)，(6,Week)...
-    TUP, YEAR, MONTH, DAY = (2018,6,17,20,45,10,6,168,0), 2018, 6 , 17
-
-    ISO_TM = '2018-06-17 20:45:10'
-    ISO_FORMAT = '%Y-%m-%d %H:%M:%S'
-
-    C_TM = 'Sun Jun 17 20:45:10 2018'
-    C_FORMAT = '%a %b %d %H:%M:%S %Y'
-
-    DATE_TIME, DATE, TIME = datetime(2018,06,17,20,45,10), date(2018,06,17), time(20,45,10)
-
-    tm.time()            # 1529239510.737
-    tm.localtime(SECS)   # 本地秒数转换为本地时间元组对象
-    tm.gmtime(SECS)      # 本地秒数转换为UTC时间元组对象
-
-    tm.mktime(TUP)       # 本地元组到本地秒, 1529239510.0
-    tm.ctime(SECS)       # 本地秒到本地字符串， 'Sun Jun 17 20:45:10 2018'
-    tm.asctime(TUP)      # 本地元组到本地字符串， 'Sun Jun 17 20:45:10 2018'
-
-    tm.strftime(ISO_FORMAT, TUP)        # 元组到指定格式， '2018-06-17 20:45:10'
-    tm.strptime(ISO_TM, ISO_FORMAT)     # 指定格式到元组
-    ### time.struct_time(tm_year=2018,tm_mon=6,tm_mday=17,tm_hour=20,tm_min=45,tm_sec=10,tm_wday=6,tm_yday=168,tm_isdst=-1)
-
-    tm.ctime(SECS - 3600 * 10)         # 时间减10时， 'Sun Jun 17 10:45:10 2018'
-
-    datetime.now()                     # 类方法, 返回当前本地datetime对象
-    datetime.utcnow()                  # 类方法，返回当前UTC datetime对象
-
-    datetime.combine(DATE,TIME)        # 类方法, 由日期和时间返回datetime对象, datetime.datetime(2018, 6, 17, 20, 45, 10)
-
-    datetime.strptime(ISO_TM,ISO_FORMAT) # 类方法, 返回datetime对象, datetime.datetime(2018, 6, 17, 20, 45, 10)
-    datetime.strptime(C_TM,C_FORMAT)     # datetime.datetime(2018, 6, 17, 20, 45, 10)
-
-    datetime.fromtimestamp(SECS)       # 类方法，返回本地datetime对象, datetime.datetime(2018, 6, 17, 20, 45, 10, 737000)
-    datetime.utcfromtimestamp(SECS)    # 类方法， 返回UTC datetime对象
-
-    DATE_TIME.ctime()                  # 返回日期字符串, 'Sun Jun 17 20:45:10 2018'
-
-    DATE_TIME.isoformat(sep='T')       # 返回标准日期字符串, '2018-06-17T20:45:10'
-    DATE_TIME.strftime(ISO_FORMAT)     # 返回指定格式的日期字符串, '2018-06-17 20:45:10'
-
-
-    DATE_TIME - timedelta(days=1)      # 返回运算后的datetime对象, datetime.datetime(2018, 6, 16, 20, 45, 10)
-
-    DATE_TIME.timetuple()              # 返回time对象的本地日期元组
-    # time.struct_time(tm_year=2018,tm_mon=6,tm_mday=17,tm_hour=20,tm_min=45,tm_sec=10,tm_wday=6,tm_yday=168,tm_isdst=-1)
-    timedelta.total_seconds()
-
-    # Datetime对象减10分钟
-    DATE_TIME = datetime.fromtimestamp((tm.mktime(DATE_TIME.timetuple())-600))  # datetime.datetime(2018, 6, 17, 20, 35, 10)
-
-    # Datetime对象减10分钟
-    ctup = tm.strptime(DATE_TIME.ctime(), C_FORMAT)
-    DATE_TIME = datetime.fromtimestamp(tm.mktime(ctup)-600)        # datetime.datetime(2018, 6, 17, 20, 25, 10)
-
-
-########################################################################
 ###  random
 ########################################################################
 # 并非真正随机生成，系统可预测，os中的urandom类接近真正随机
@@ -177,3 +86,46 @@ def moduleRandom():
     random.shuffle(seq)                # 就地打乱序列seq, <type 'list'>: [7, 3, 8, 9, 1, 15]
     random.sample(seq,5)               # 随机返回序列seq中5个不同位置的元素
 
+
+
+########################################################################
+###  Operator
+########################################################################
+def fun1():
+    from operator import itemgetter
+    metro_data = [('Tokyo', 'JP', 36.933),
+                  ('Mexico City', 'MX', 20.142),
+                  ('Sao Paulo', 'BR', 19.649)]
+
+    # 根据元组的某个字段排序
+    cities = [city[:2] for city in sorted(metro_data, key=itemgetter(1))]
+    # [('Sao Paulo', 'BR'), ('Tokyo', 'JP'), ('Mexico City', 'MX')]
+
+    cities = [city[:2] for city in sorted(metro_data, key=lambda x:x[1])]
+    # [('Sao Paulo', 'BR'), ('Tokyo', 'JP'), ('Mexico City', 'MX')]
+
+    # 构建函数提取元组数值
+    cities = [itemgetter(1, 0)(city) for city in metro_data]
+    # [('JP', 'Tokyo'), ('MX', 'Mexico City'), ('BR', 'Sao Paulo')]
+
+    cities = list(map(lambda x:(x[1], x[0]), metro_data))
+    # [('JP', 'Tokyo'), ('MX', 'Mexico City'), ('BR', 'Sao Paulo')]
+
+
+def fun2():
+    from operator import attrgetter
+    from collections import namedtuple
+
+    metro_data = [('Tokyo', 'JP', (36.933, 139.671)),
+                  ('Mexico City', 'MX', (20.142, 77.554)),
+                  ('Sao Paulo', 'BR', (19.649, 45.254))]
+    LatLong = namedtuple('latLong', 'lat long')
+    Metro = namedtuple('metro', 'name cc coord')
+
+    metro_areas = [Metro(name, cc, LatLong(lat, long)) for name, cc, (lat, long) in metro_data]
+
+    print(metro_areas[1])
+    # metro(name='Mexico City', cc='MX', coord=latLong(lat=20.142, long=77.554))
+
+    cities = [city[:2] for city in sorted(metro_areas, key=attrgetter('coord.lat'))]
+    # [('Sao Paulo', 'BR'), ('Mexico City', 'MX'), ('Tokyo', 'JP')]

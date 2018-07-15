@@ -1,77 +1,172 @@
 # -*- coding: utf-8 -*-
-""""""
-
-"""
-python内置数据类型、判断语句
-"""
+import math
+from math import pi as PI
 
 ########################################################################
 ###  列表
 ########################################################################
-color = ['red', 'green', 'blue', 'orange']
-len(color)                  # 获取列表长度
-sorted(color)               # 返回正序列表，不改变原始串
-max(color)                  # 返回最大元素，min返回最小
+def fun1():
 
-color.reverse()             # 列表反转
-color.sort(reverse=True)    # 逆序
-color.sort()                # 正序
+    color = ['red', 'green', 'blue', 'orange']
+    len(color)
+    # 4
+    sorted(color, reverse=False)
+    # ['blue', 'green', 'orange', 'red'], 非就地
+    max(color)
+    # 'red'
+    color.reverse()
+    # ['orange', 'blue', 'green', 'red']， 就地反转
+    color.sort()
+    # ['blue', 'green', 'orange', 'red']， 就地升序
+    color.sort(reverse=True)
+    # ['red', 'orange', 'green', 'blue']， 就地逆序
 
-color[0] = 'yellow'         # 指定位修改
-color.append('white')       # 附加
-color.insert(0, 'pink')     # 指定位插入
+    color = ['red', 'orange', 'green', 'blue']
+    color[0] = 'yellow'
+    # ['yellow', 'orange', 'green', 'blue']
+    color.append('red')
+    # ['yellow', 'orange', 'green', 'blue', 'red']
+    color.insert(0, 'pink')
+    # ['pink', 'yellow', 'orange', 'green', 'blue', 'red']
+    color.index('red')
+    # 5 元素首次出现位置
+    color.extend([1, 2])
+    # ['pink', 'yellow', 'orange', 'green', 'blue', 'red', 1, 2]
+    if 'red' in color:
+        # 遍历查找
+        pass
 
-color.index('red')          # 查找元素首次出现位置
-bFlag = 'red' in color      # 成员查找：True
+    # 列表引用/别名, 通过co可修改color，列表、字典具有引用性质
+    # 切片方式获得的列表为深复制
+    c = color = ['pink', 'yellow', 'orange', 'green', 'blue', 'red']
+    c = color[-1]
+    # 'red'
+    c = color[:]
+    # ['pink', 'yellow', 'orange', 'green', 'blue', 'red']
+    c = color[1:3]
+    # ['yellow', 'orange']
+    c = color[1:5:2]
+    # ['yellow', 'green']
+    color[1:3] = [1, 2]
+    # ['pink', 1, 2, 'green', 'blue', 'red'], 切片形式赋值
 
-co = color                  #列表引用/别名, 通过co可修改color，列表、字典具有引用性质
-co1 = color[-1]             # 复制最后一个元素
-co2 = color[:]              # 列表复制全部
-co3 = color[1:3]            # 切片复制2个元素
-co4 = color[1:5:2]          # 步长为2，复制位于[1,3]的两个元素
+    # 删除
+    color = ['pink', 'yellow', 'orange', 'green', 'blue', 'red']
+    del color[0]
+    # ['yellow', 'orange', 'green', 'blue', 'red']
+    color.remove('orange')
+    # ['yellow', 'green', 'blue', 'red']
+    color.pop(1)
+    # green, ['yellow', 'blue', 'red'], 随机pop（高效逐个删除）
 
-arr = range(20)
-new_arr = [arr[i] for i in (7, 11, 13)]   # 选取多个位置元素
+    # 列表解析，生成列表速度优于循环append
+    arr = [i+1 for i in range(3)]
+    # [1, 2, 3]
 
-for co in color:                # 普通遍历
-    print(co)
-for idx, co in enumerate(color):# 并行迭代
-    print(idx, co)
-co = [c for c in color]         # 列表解析
-zip([1, 2], [4, 5])             # 实现两个列表的并行迭代，zip函数返回元组列表[(1,4),(2,5)]
+    # 普通遍历
+    for co in color:
+        pass
 
-del color[0]                    # 指定位删除
-color.remove('white')           # 指定元素删除,删除第一个被找到的元素
-color.pop(1)                    # 删除并引用
+    # 并行迭代
+    for idx, co in enumerate(color):
+        print(idx, co)
 
-# 列表生成
-arr1 = [1, 2, 3] + [2, 3, 4]    # 列表相加：[1, 2, 3, 2, 3, 4],不支持减法, 效率低于.extend()方法
-arr2 = [1, 2] * 2               # 列表相乘：[1, 2, 1, 2]
-arr3 = [None] * 3               # 列表相乘：[None, None, None]
-list(range(5))                  # range创建：[0, 1, 2, 3, 4]
-list(range(1, 5))               # range创建：[1, 2, 3, 4]
-list('hello')                   # ['h', 'e', 'l', 'l', 'o']
+    # zip函数返回元组列表[(1,4),(2,5)]
+    zip([1, 2], [4, 5])
+
+    # 列表生成
+    arr = [1, 2, 3] + [2, 3, 4]    # 不支持减法, 效率低于extend
+    # [1, 2, 3, 2, 3, 4]
+    arr = [1, 2] * 2
+    # [1, 2, 1, 2]
+    arr = [None] * 3
+    # [None, None, None]
+    arr = [[]]*3
+    # [[], [], []]
+    list(range(5))
+    # [0, 1, 2, 3, 4]
+    list('hello')
+    # ['h', 'e', 'l', 'l', 'o']
+
+    # 就地运算
+    arr = [1, 2, 3]
+    # id(arr) = 345464219336
+    arr *= 2
+    # [1, 2, 3, 1, 2, 3]
+    # id(arr) = 345464219336
 
 
 ########################################################################
 ###  元组
 ########################################################################
 # 元组内部元素不可修改，但元素变量可修改（变量可随意赋值）
-dem = (200, 50)     # 赋值
-dem[0]              # 引用
-dem = (100, 100)    # 重新赋值
-dem += (200,)       # 添加一个元素
-dem += (200, 100)   # 添加两个元素
+# 元组内所有元素可散列时，元组才可散列
+def fun2():
+    dem = (200, 50)
+    # (200, 50)
+
+    a = dem[0]
+
+    dem = (100, 100)
+    # (100, 100)5
+
+    dem = (200, 50) + (200,)
+    # (200, 50, 200)
+    dem = (200, 100) + (100, 50)
+    # (200, 100, 100, 50)
+
+    # 拆包
+    a, b = (100, 200)
+    # a = 100, b = 200
+    a, b, *c = range(5)
+    # 0, 1, [2, 3, 4]
+
+    # 元祖中含可变对象
+    tup = (1, 2, [3, 4])
+    try:
+        tup[2] += [4,5]
+        # (1, 2, [3, 4, 4, 5])
+    except TypeError:
+        pass
 
 
-########################################################################
+########### #############################################################
 ###  集合
 ########################################################################
-# 不支持索引且自动去重
-a = {1, 4, 4, 3}    # a={1,3,4}
-b = set(range(5))   # set([0, 1, 2, 3, 4])
-c = a.union(b)      # 合并集合
-d = a|b             # 合并集合,a&b求交集,a^b就差集,a-b,b-a
+# 不支持索引且自动去重， 元素以hash表形式存储
+# 最好不要在迭代集合或字典时添加值，考虑到存储字典元素的无序性（python3.6之后有序）
+def fun3():
+
+    set1 = set(range(5))
+    # {0, 1, 2, 3, 4}
+    set1 = {1, 4, 4, 3} # 构建集合速度最快
+    # {1, 3, 4}
+    set1.add(5)
+    # {1, 3, 4, 5}
+    set1.pop()
+    # {3, 4, 5}
+    set1.remove(5)
+    # {3, 4}
+
+    set1 = {1, 2}.union({2, 3})
+    # {1, 2, 3}
+    set1 = {1, 2}.union([2, 3])
+    # {1, 2, 3}
+
+    set1 = {1, 2} | {2 ,3}
+    # {1, 2, 3}
+    set1 = {1, 2} & {2, 3}
+    # {2}
+    set1 = {1, 2} ^ {2, 3}
+    # {1, 3}
+    set1 = {1, 2} - {2, 3}
+    # {1}
+
+    set1 = {i for i in range(3)}
+    # {0, 1, 2}
+
+    b = {1, 2, 3} > {1, 2}
+    # True
 
 
 ########################################################################
@@ -79,178 +174,234 @@ d = a|b             # 合并集合,a&b求交集,a^b就差集,a-b,b-a
 ########################################################################
 # 字典由键-值对构成，键值对也称为项
 # 字典中不含相同的键，前者自动被覆盖
-items = [('name', 'Gumby'), ('age', 35)]
-d = dict(items)                 # 通过字典函数把其他数据类型映射为字典，d={'age':35,'name':'Gumby'}
-c = d                           # 字典引用/别名，通过c可操作d
-c = d.copy()                    # python27深复制,可能与python3不同
-c = dict.fromkeys(['a', '1'], None)  # 生成键值为空的字典，c={'age':None,'name':None}
-c = dict(zip(a,b))              # 两个列表组合成字典
+def fun4():
 
-value = d['name']               # 通过键访问字典值，键名不存在时报错
-value = d.get('name', None)     # get方法获取键值，键名不存在时返回None
+    dic = dict([('name', 'Gumby'), ('age', 35)])
+    # {'name': 'Gumby', 'age': 35}
+    dict.fromkeys(['a', '1'], None)
+    # {'a': None, '1': None}
+    dict(zip(('a', 'b'), (1, 2)))
+    # {'a': 1, 'b': 2}
+    dic = {name:code for name, code in [('a', 'b'), (1, 2)]}
+    # {'a': 'b', 1: 2}
 
-d.has_key('name')               # 检查是否存在键名，True
+    # 字典引用/别名
+    c = dic
+    c = dic.copy()
 
-d.items()                       # 获取字典所有项列表，列表元素为元组,[('age',35), ('name','Gumby')]
-d.iteritems()                   # 返回字典项迭代器，使用.next()获取键值对元组
-d.iterkeys()                    # 返回字典键值迭代器
-d.values()                      # 获取键值列表，无序
-d.keys()                        # 获取键名列表，无序
+    # 元素查找
+    dic = {'a':1, 'b':2}
+    value = dic['a']
+    value = dic.get('a', None)
 
-for key, value in d.items():    # 项遍历
-    print(key, value)
+    # 迭代
+    # .items()      获取字典所有项列表，元素为元祖
+    # .iteritems()  返回字典项迭代器，使用.next()获取键值对元组
+    # .iterkeys()   字典键值迭代器
+    # .values()     值表（无序）
+    # .keys()       值表（无序）
 
-for key in d.keys():            # 值遍历
-    print(key)
+    dic = {'a':1, 'b':2}
+    for key, value in dic.items():
+        pass
+    # 默认在keys中遍历
+    for key in dic:
+        pass
+    # python3在视图中查找, python2在列表中查找
+    for key in dic.keys():
+        pass
 
-d['name'] = 'Gumbye'            # 直接修改键值
-d['add'] = 'Chicago'            # 键名不存在时，添加新的键值对
-d.update({'age': 25, 'gender': 'male'})  # 更新存在键值对，添加不存在的键值对
+    # 默认在keys中查找
+    # python3中dic.keys()返回dict_keys对象，hash
+    # python2中dic.keys()返回list对象，遍历
+    if 'a' in dic:
+        pass
+    if 'a' in dic.keys():
+        pass
 
-v = d.pop('add')                # 删除并引用
-v = d.popitem()                 # 随机pop，高效的逐个删除
-del d['age']                    # 删除指定键值对
-d.clear()                       # 清空字典
+    dic['a'] = 2
+    # {'a': 2, 'b': 2}
+    dic['c'] = 3
+    # {'a': 2, 'b': 2, 'c': 3}
+
+    dic.update({'a': 1, 'd': 4})
+    # {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+
+    dic.pop('d')
+    # 4, {'a': 1, 'b': 2, 'c': 3}
+    dic.popitem()
+    # ('c', 3)， {'a': 1, 'b': 2} 随机pop，高效逐个删除
+    del dic['b']
+    # {'a': 1}
+    dic.clear()
+    # {}
+    dic.get('a', 1)
+    # 1, {}
+    dic.setdefault('a',1)
+    # 1, {'a': 1}
+    dic.setdefault('a', 2)
+    # 1, {'a': 1}
 
 
-########################################################################
+#########################################################################
 ### 字符串
-########################################################################
-import math
-from math import pi as PI
+#########################################################################
+# Python3.6之后方法，直接在字符串中使用变量
+# 字符串元素的值不可改变,s[1]='r'非法
+def fun5():
+    string = ' aBc def '
+    string.title()
+    # ' Abc Def '
+    string.upper()
+    # ' ABC DEF '
+    string.lower()
+    # ' abc def '
 
-s = ' aBc def '                 # 字符串元素的值不可改变,s[1]='r'非法
-g = h = 'hi'                    # 更改h的值，不影响g
-s.title()                       # 单词首位大写：' Abc Def '
-s.upper()                       # 全部大写：' ABC DEF
-s.lower()                       # 全部小写：' abc def '
-s.rstrip()                      # 去右边空格：' aBc def'
-s.lstrip()                      # 去左边空格：'aBc def '
-s.strip()                       # 去两边空格：'aBc def'
-s.rstrip('f ')                  # 去右边字符：' aBc de'
-s.strip(' a')                   # 去两边字符：'Bc def'
-s.replace('Bc', 'aa')           # 替换字符：' aaa def '
-s.find('B')                     # 查找字符位置：2
-s.count('a')                    # 查找字符个数，1
-s.split()                       # 分割字符串，默认空格，['aBc', 'def']
-s1 = s + g                      # 合并字符：' aBc def hi'
-str()
+    string.rstrip()
+    # ' aBc def'
+    string.lstrip()
+    # 'aBc def '
+    string.strip()
+    # 'aBc def'
+    string.rstrip('f ')
+    # ' aBc de'
+    string.strip(' a')
+    # 'Bc def'
 
-s.center(12, '*')               # 指定宽度，两边填充字符，'* aBc def **'
-path = r'c:\nowhere'            # 使用原始字符串
-w = '%s + %s' % (s, g)          # 字符串格式化：'aBc def  + hi'
+    string.replace('Bc', 'aa')
+    # ' aaa def '
 
-s = 'abc'
-c = '{},{},and {}'.format(s[0], s[1], s[2])             # c='a,b and c'
-c = '{0},{1} and {0}'.format(s[0], s[1])                # c='a,b and a'
-# c = '{c1},{} and {c2}'.format(s[0], c1=s[1], c2=s[2])   # c='b,a and c'
-c = '{nm} is appro {v}'.format(v=PI, nm='pi')           # c='pi is appro 3.14159265359'
+    string.find('B')
+    # 2
+    string.count('a')
+    # 1
 
-t = '{mod.__name__} module defines {mod.pi} for pi'
-c = t.format(mod=math)          # 'math module defines 3.14159265359 for pi'
+    string.split()
+    # ['aBc', 'def']
 
-# c = f's={s}'                  # python 3.6之后方法，直接在字符串中使用变量
-'{:f}'.format(10)               # 转换输出浮点：'10.000000'
-'{:3}'.format(10)               # 指定宽度输出：' 10'
-'{:$<6.2f}'.format(10)          # 指定宽度和精度：'10.00$'，宽度为整数部分+小数点+小数部分位数和
-                                # 左右中对齐<、>、^,使用$空白填充
-dic = {"a": "1", "b": "2"}
-buf = ["%s=%s" % (k, v) for k, v in dic.items()]  # buf=['a=1', 'b=2']
-new = ";".join(buf) # new='a=1;b=2'
+    string.center(12, '*')
+    # '* aBc def **', 指定宽度，两边填充字符
 
-# 不同字符编码占用的空间不同, -*- coding: utf-8 -*- #文件开头的编码声明
-len('12345'.encode('ASCII'))    # 5
-len('12345'.encode('UTF-8'))    # 5
-len('12345'.encode('UTF-32'))   # 24
+    eval('%s + %s' % ('12', '45'))
+    # 57
 
-'123'.isalnum()                 # 判断是否为数字，True
-'abc'.isalpha()                 # 判断是否为字母，True
-isinstance('ssd',str)           # 判断是否是字符串
+    '{},{},and {}'.format(*'abc')
+    # 'a,b,and c'
+    '{0},{1} and {0}'.format(*('a','b'))
+    # 'a,b and a'
+    '{c1},{c0} and {c2}'.format(c0=1, c1=2, c2=3)
+    # '2,1 and 3'
+    '{c1},{c0} and {c2}'.format(**dict(c0=1,c1=2,c2=3))
+    # '2,1 and 3'
 
+    '{mod.__name__} module defines {mod.pi} for pi'.format(mod=math)
+    # 'math module defines 3.141592653589793 for pi'
 
-########################################################################
-### 运算
-########################################################################
-#-------------------------------------------------------------------------
+    f's={PI}'
+    # 's=3.141592653589793'
+    '{:f}'.format(10)
+    # '10.000000'
+    '{:3}'.format(10)
+    # ' 10'
+    '{:+<10.3f}'.format(10)
+    # '10.000++++', 左右中对齐<、>、^,使用$空白填充
 
-num = 1 / 2           #1
-num = 1. / 2          #0.5
+    buf = ["%s=%s" % (k, v) for k, v in dict(a=1, b=2).items()]
+    # ['a=1', 'b=2']
+    ";".join(buf)
+    # 'a=1;b=2'
 
-num = 12.35
-int(num)        #12
-float(num)      #12.35
-str(num)        #'12.35'
-math.ceil(num)  #13.0
-math.sqrt(9)    #3.0
-
-bool('')                  #False
-bool('0')                 #True
-bool(0)                   #False
-bool(23)                  #True
-bool(None)                #False
-
-a = 2 and 1               #and、or语句符合短路逻辑，即表示式值确定后终止判断
+    '123'.isalnum()
+    # True
+    'abc'.isalpha()
+    # True
+    isinstance('ssd', str)
+    # True
 
 
-########################################################################
-### is语句（同一元素符）
-########################################################################
-num1 = num2 = 10          #整型对象，is语句与==语句一致
-num3 = 10
-print(num2 is num1)       #True
-print(num3 is num1)       #True
-
-lst1 = lst2 = [1,2,3]
-lst3 = [1,2,3]
-print(lst2 is lst1)       #True，引用对象
-print(lst2 == lst1)       #True
-print(lst3 is lst1)       #False,非引用对象
-print(lst3 == lst1)       #True
-
-
-########################################################################
-### in语句（成员资格）
-########################################################################
-b = 's' in 'search'           #True
-b = 'ch' in 'search'          #True
-
-
-########################################################################
-### if语句
-########################################################################
-a, b, c = 1, 5, 3          #序列解包，多元素使用元组赋值
-a, b = b, a                #交换
-if a >= b and a >= c:
-    max_num = a
-elif b >= a and b >= c:
-    max_num = b
-else:
-    max_num = c
-s = 'max[{},{},{}]={}'.format(a,b,c,max_num)
-print(s)    #max[1,5,3]=5
-
-a = True
-c = 2 if a else 0         #三元表达式，a为真返回2，否则返回0
-
-
-########################################################################
-### while语句
-########################################################################
-#-------------------------------------------------------------------------
-while True:
-    city = raw_input("Input your favorite city:")
-    if city == 'q':
-        break
-    else:
-        print("Input 'q' to exit!")
-
-
-########################################################################
-### assert语句
-########################################################################
-#断言方法，语句不成立时终止程序
-age = 10
-assert 0 < age < 10
+# ########################################################################
+# ### 运算
+# ########################################################################
+# #-------------------------------------------------------------------------
+#
+# num = 1 / 2           #1
+# num = 1. / 2          #0.5
+#
+# num = 12.35
+# int(num)        #12
+# float(num)      #12.35
+# str(num)        #'12.35'
+# math.ceil(num)  #13.0
+# math.sqrt(9)    #3.0
+#
+# bool('')                  #False
+# bool('0')                 #True
+# bool(0)                   #False
+# bool(23)                  #True
+# bool(None)                #False
+#
+# a = 2 and 1               #and、or语句符合短路逻辑，即表示式值确定后终止判断
+#
+#
+# ########################################################################
+# ### is语句（同一元素符）
+# ########################################################################
+# num1 = num2 = 10          #整型对象，is语句与==语句一致
+# num3 = 10
+# print(num2 is num1)       #True
+# print(num3 is num1)       #True
+#
+# lst1 = lst2 = [1,2,3]
+# lst3 = [1,2,3]
+# print(lst2 is lst1)       #True，引用对象
+# print(lst2 == lst1)       #True
+# print(lst3 is lst1)       #False,非引用对象
+# print(lst3 == lst1)       #True
+#
+#
+# ########################################################################
+# ### in语句（成员资格）
+# ########################################################################
+# b = 's' in 'search'           #True
+# b = 'ch' in 'search'          #True
+#
+#
+# ########################################################################
+# ### if语句
+# ########################################################################
+# a, b, c = 1, 5, 3          #序列解包，多元素使用元组赋值
+# a, b = b, a                #交换
+# if a >= b and a >= c:
+#     max_num = a
+# elif b >= a and b >= c:
+#     max_num = b
+# else:
+#     max_num = c
+# s = 'max[{},{},{}]={}'.format(a,b,c,max_num)
+# print(s)    #max[1,5,3]=5
+#
+# a = True
+# c = 2 if a else 0         #三元表达式，a为真返回2，否则返回0
+#
+#
+# ########################################################################
+# ### while语句
+# ########################################################################
+# #-------------------------------------------------------------------------
+# while True:
+#     city = r"Input your favorite city:"
+#     if city == 'q':
+#         break
+#     else:
+#         print("Input 'q' to exit!")
+#
+#
+# ########################################################################
+# ### assert语句
+# ########################################################################
+# #断言方法，语句不成立时终止程序
+# age = 10
+# assert 0 < age < 10
 
 
 ########################################################################
