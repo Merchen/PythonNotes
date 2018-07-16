@@ -4,13 +4,13 @@ from collections import Counter, deque, OrderedDict, defaultdict, \
 import queue
 from  warnings import warn
 
-########################################################################
-###  deque
-########################################################################
+
+#=======================================================================
+"""deque"""
 # 高效处理频繁先进先出
 # 执行1000万次pop和left，deque、list、Queue分别耗时1.8s、2.2s、44秒
 # append和popleft为原子性操作，保证多线程安全访问
-def fun1():
+def _deque():
     dq = deque(range(5))
     # deque([0, 1, 2, 3, 4])
     dq.count(1)
@@ -48,10 +48,9 @@ def fun1():
     dq1.clear()
 
 
-########################################################################
-###  Queue
-########################################################################
-def fun2():
+#=======================================================================
+"""Queue"""
+def _queue():
     que = queue.Queue(maxsize=5)
     try:
         for i in range(6):
@@ -65,12 +64,11 @@ def fun2():
         warn('Empty queue!')
 
 
-########################################################################
-###  OrderedDict
-########################################################################
+#=======================================================================
+"""OrderedDict"""
 # 有序字典，利用列表存储键名
 # python3.6开始，dict默认有序
-def fun3():
+def _orderDict():
     items = ('a',1),('b',2),('c',3)
 
     odic = OrderedDict(items)
@@ -86,12 +84,11 @@ def fun3():
     # ('d', 4)
 
 
-########################################################################
-###  defaultdict
-########################################################################
+#=======================================================================
+"""defaultdict"""
 # 访问不存在的键时，返回默认值
 # dict.setdefault(key, default)
-def fun4():
+def _defaultdict():
     ddic = defaultdict(list)
 
     ddic.update(dict(a=1, b=2))
@@ -109,12 +106,11 @@ def fun4():
     # defaultdict(dict, {'first': {}, 'second': {'b1': 1}})
 
 
-########################################################################
-###  ChainMap
-########################################################################
+#=======================================================================
+"""ChainMap"""
 # ChainMap(dict1, dict2,...)
 # 从前往后依次搜索键，直到搜索到为止
-def fun5():
+def _chainMap():
     cdic = ChainMap({'a':1, 'b':2}, {'a':2, 'c':3})
     value = cdic['a']
     # 1
@@ -122,12 +118,11 @@ def fun5():
     # 3
 
 
-########################################################################
-###  Counter
-########################################################################
+#=======================================================================
+"""Counter"""
 # ChainMap(dict1, dict2,...)
 # 从前往后依次搜索键，直到搜索到为止
-def fun6():
+def _counter():
     counter = Counter('aabb')
     counter = Counter(dict(a=2, b=2))
     # Counter({'a': 2, 'b': 2})
@@ -146,11 +141,10 @@ def fun6():
     # ['a', 'a', 'a', 'a', 'a', 'b', 'b', 'b', 'b', 'b', 'b', 'c', 'c']
 
 
-########################################################################
-###  UserDict
-########################################################################
+#=======================================================================
+"""UserDict"""
 # 使用dict作为超类可能需要重构许多方法，UserDict方便继承
-class StrKeyDict(UserDict):
+class _userDict(UserDict):
 
     def __missing__(self, key):
         """__getitem__, KeyError时调用"""
@@ -166,14 +160,19 @@ class StrKeyDict(UserDict):
         self.data[str(key)] = value
 
 
-########################################################################
-###  namedtuple
-########################################################################
-def fun7():
+#=======================================================================
+"""namedtuple"""
+# 元组中各字段支持字符串索引
+def _namedtuple():
 
+    # 构建
     TupClass = namedtuple('MytupleClass', ['name', 'age', 'job'])
+    # TupClass = namedtuple('MytupleClass', 'name, age, job')
+    # TupClass = namedtuple('MytupleClass', 'name age job'])
 
     obj = TupClass('Tom', 12, 'coder')
+
+    # 解析
     name, age, job = obj
     # name='Tom', age='12', job='coder'
 
@@ -183,7 +182,15 @@ def fun7():
     print('%s is %d years old %s' % ('Tom', 12, 'coder'))
     # Tom is 12 years old coder
 
+    print(obj.__doc__)
+    # MytupleClass(name, age, job)
+
     Point = namedtuple('point', ['x', 'y'])
-    p = Point(1, 2)
-    x, y = p
-    # x = 1, y = 200000000000000000000000
+    point = Point(1, 2)
+
+    print("x=%d, y=%d" % (point.x, point.y))
+    # x = 1, y = 2
+
+    # 转换为有序字典
+    point._asdict()
+    # OrderedDict([('x', 1), ('y', 2)])

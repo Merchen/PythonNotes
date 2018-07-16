@@ -67,7 +67,7 @@ class MySQLConnector():
             for table in self.__cursor.fetchall():
                 tables.append(table[0])
         except Exception as err:
-            print "Error: %s" %err
+            print("Error: %s" %err)
         return tables
 
     def getTableColumns(self,table):
@@ -79,7 +79,7 @@ class MySQLConnector():
                 for column in self.__cursor.fetchall():
                     columns.append(column[0])
         except Exception as err:
-            print "Error: %s" % err
+            print("Error: %s" % err)
         return columns
 
     def read2pandas(self,query):

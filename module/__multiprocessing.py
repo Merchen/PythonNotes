@@ -2,7 +2,7 @@
 # 进程之间内存空间独立，开辟进程时reload文件，所有函数从新加载
 # main中已执行部分不重新执行
 import multiprocessing
-import Queue
+import queue as Qeuue
 import pandas as pd
 import numpy as np
 import os
@@ -43,7 +43,7 @@ def _fun2Process(n, lock, dframe, queue):
         queue.put(dframe, block=False)              # 不等待插入
         # queue.put(dframe, block=True, timeout=1)  # 不成功时，等待timeout秒后重试一次
         lock.release()                              # 释放锁
-    except Queue.Full:
+    except queue.Full:
         pass
 
 
@@ -61,7 +61,7 @@ def _fun3Process(queue):
     while True:
         try:
             print(len(queue.get(block=False)))
-        except Queue.Empty:
+        except Qeuue.Empty:
             sleep(1)
 
 
