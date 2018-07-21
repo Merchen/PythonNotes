@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from math import hypot
+import math
+import array
 from warnings import warn
 
 # __xxx__,系统专用标识,可在类外部使用instance.__xxx__形式调用
@@ -11,28 +12,95 @@ from warnings import warn
 #
 
 
-class Vector(object):
-    """
-    运算符重载
-    """
+class Vector2D(object):
+    typecode = 'd'
+
     def __init__(self, x=0, y=0):
-        self.x = x
-        self.y = y
+        self.__x = float(x)
+        self.__y = float(y)
+
+    @property
+    def x(self):
+        return self.__x
+
+    @property
+    def y(self):
+        return self.__y
+
+    def __hash__(self):
+        """
+        可散列对象: 其生命周期内散列值不变、相同对象的散列值相等
+        对于原子不可变数据类型str、bytes和数值类型都是hashable
+        使用异或^混合各分量的散列值
+        """
+        return hash(self.x) ^ hash(self.y)
+
+    def __iter__(self):
+        return (i for i in (self.x, self.y))
 
     def __repr__(self):
-        return 'Vector(%r, %r)' % (self.x, self.y)
+        cls_name = type(self).__name__
+        return '{}({})' .format(cls_name, str(', '.join(repr(i) for i in self)))
+
+    def __str__(self):
+        return str(tuple(self))
+
+    def __format__(self, fmt_spec=''):
+        """
+        未定义时, 使用无参的format则调用__str__方法
+        format(Vector2D) ==> str(Vector2D)
+        """
+        components = (format(c ,fmt_spec) for c in self)
+        return '{}, {}'.format(*components)
+
+    def __bytes__(self):
+        return bytes([ord(self.typecode)]) + \
+               bytes(array.array(self.typecode, self))
+
+    def __eq__(self, other):
+        return tuple(self) == tuple(self)
 
     def __abs__(self):
-        return hypot(self.x, self.y)
+        return math.hypot(self.x, self.y)
 
     def __bool__(self):
         return bool(abs(self))
 
     def __add__(self, other):
-        return Vector(self.x + other.x, self.y + other.y)
+        return Vector2D(self.x + other.x, self.y + other.y)
 
     def __mul__(self, scalar):
-        return Vector(self.x * scalar, self.y *  scalar)
+        return Vector2D(self.x * scalar, self.y *  scalar)
+
+    def angle(self):
+        return math.atan2(self.y, self.x)
+
+    @classmethod
+    def frombytes(cls, octets):
+        code = chr(octets[0])
+        memv = memoryview(octets[1:]).cast(code)
+        return cls(*memv)
+
+
+def _vector2d():
+
+    vector = Vector2D(1, 2)
+
+    print({vector, vector})
+    # {Vector2D(1.0, 2.0)}
+
+    print(repr(vector))
+    # Vector2D(1.0, 2.0)
+
+    print(str(vector))
+    # (1.0, 2.0)
+
+    bt = bytes(vector)
+    print(Vector2D.frombytes(bt))
+    # (1.0, 2.0)
+
+
+_vector2d()
 
 
 _MODEL_BATTERY = {"A": 70, "S": 100}

@@ -1,4 +1,8 @@
-""""""
+# -*- coding: utf-8 -*-
+
+import time
+import functools
+
 """此部分内容存储在__doc__
 
 函数局部空间，记录函数参数和局部变量;
@@ -101,33 +105,6 @@ def fun2():
     func1(func2)()
 
 
-#=======================================================================
-"""递归，三元表达式、二分查找"""
-def fun3():
-    def factorial(n):
-        """递归的可读性好，但效率底"""
-        return 1 if n==0 else n*factorial(n-1)
-    # 6
-    print(factorial(3))
-
-
-    def search(seq, num, lower=0, upper=None):
-        """seq为有序序列，num为查找的数字"""
-        if upper is None:
-            upper = len(seq) - 1
-
-        if lower == upper:
-            return upper
-
-        mid = (lower + upper) / 2
-        if num > seq[mid]:
-            return search(seq, num, mid + 1, upper)
-        else:
-            return search(seq, num, lower, mid)
-    # 3
-    print(search([1, 2, 3, 4, 5, 6], 4))
-
-
 # =======================================================================
 """locals()/globals()"""
 # 可通过globals()直接修改全局变量的值
@@ -193,20 +170,109 @@ def fun5():
 
 
 # =======================================================================
-"""装饰器"""
+"""装饰器--无参"""
 # 装饰器--运行时改变函数的行为
 # 模块加载(import)时执行
+# 通过应执行原函数，并附加以下操作
 def fun6():
-    def _start(fun):
-        print('running _start()')
-        return fun
+    def clock(fun):
+        """输出函数运行时间"""
+        # @functools.wraps(fun), 写入原函数fun属性(如__doc__, __name__)
+        def clocked(*args):
+            """clocked"""
+            t0 = time.perf_counter()
+            res = fun(*args)
+            elapsed = time.perf_counter() - t0
+            name = fun.__name__
+            arg_str = ', '.join(repr(arg) for arg in args)
+            print('[%.6fs] %s(%s) -> %r' % (elapsed, name, arg_str, res))
+            return res
+        return clocked
 
-    @_start
-    def start():
-        print('runing start()')
+    @clock
+    def snooze(seconds):
+        """sleep several seconds"""
+        time.sleep(seconds)
 
-    # 定义装饰器的等价形式
-    start = _start(start)
+    # 无参装饰器的等价形式
+    snooze = clock(snooze)
+
+    snooze(1)
+    # [1.000274s] snooze(1) -> None
+    print(snooze.__name__, snooze.__doc__)
+    # cloaked, cloaked, 函数部分属性被覆盖
+
+    @clock
+    def _fibonacci(n):
+        """递归的可读性好，但效率底"""
+        return n if n < 2 else _fibonacci(n - 2) + _fibonacci(n - 1)  # 6
+
+    _fibonacci(3)
+    # [0.000000s] _fibonacci(1) -> 1
+    # [0.000000s] _fibonacci(0) -> 0
+    # [0.000000s] _fibonacci(1) -> 1
+    # [0.000138s] _fibonacci(2) -> 1
+    # [0.000390s] _fibonacci(3) -> 2
+    # 重复递归时基层被多次调用, 效率低下
+
+    @functools.lru_cache(maxsize=128)
+    @clock
+    def fibonacci(n):
+        return n if n < 2 else fibonacci(n - 2) + fibonacci(n - 1)  # 6
+
+    fibonacci(3)
+    # [0.000001s] fibonacci(1) -> 1
+    # [0.000000s] fibonacci(0) -> 0
+    # [0.000036s] fibonacci(2) -> 1
+    # [0.000140s] fibonacci(3) -> 2
+    # 备忘功能, 加速重复递归
+
+
+# =======================================================================
+"""装饰器--含参"""
+def fun():
+    registry = set()
+
+    def register(active=False):
+        print('registering...')
+
+        def decorate(fun):
+            print('%s, decorating...' % fun.__name__)
+            registry.add(fun) if active else registry.discard(fun)
+            return fun
+
+        return decorate
+
+    @register(True)
+    def show(*args, **kwargs):
+        print(args, kwargs)
+
+    # 模块import时执行
+    # registering...
+    # show, decorating...
+
+    # 等价形式
+    show = register(True)(show)
+
+    show(1, 2, a=3)
+    # (1, 2) {'a': 3}
+    print(registry)  # {<function fun.<locals>.show at 0x0000006A6F2E7A60>}
+
+    def wait(seconds=1):
+        def decorate(fun):
+            def _fun(*args, **kwargs):
+                print('sleeping %s...' %seconds)
+                time.sleep(seconds)
+                return fun(*args, **kwargs)
+            return _fun
+        return decorate
+
+    @wait(1)
+    def _exc():
+        print('_exc')
+
+    _exc()
+    # 延时1s输出'_exc'
 
 
 # =======================================================================

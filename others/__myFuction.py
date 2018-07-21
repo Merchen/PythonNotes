@@ -76,6 +76,21 @@ def append_syspath(path=ROOT_PATH):
         sys.path.append(path)
 
 
+def binarySearch(seq, num, lower=0, upper=None):
+    """二分查找"""
+    if upper is None:
+        upper = len(seq) - 1
+
+    if lower == upper:
+        return upper
+
+    mid = (lower + upper) / 2
+    if num > seq[mid]:
+        return search(seq, num, mid + 1, upper)
+    else:
+        return search(seq, num, lower, mid)
+
+
 if __name__ == '__main__':
     pass
 
