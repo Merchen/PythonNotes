@@ -4,10 +4,10 @@ Python Notes
 
 Pycharm Settings
 ---
-右边显示变量信息：configurations: Run with python console <br/>
-自动显示变量、函数文档注释：show quick documentation on mouse move 1000ms <br/>
-命令行状态下换行：SHIFT + ENTER <br/>
-字体：Candara, Lucida Sans Unicode, DejaVu Sans Mono <br/>
+    右边显示变量信息：configurations: Run with python console
+    自动显示变量、函数文档注释：show quick documentation on mouse move 1000ms
+    命令行状态下换行：SHIFT + ENTER
+    字体：Candara, Lucida Sans Unicode, DejaVu Sans Mono
 
 Key Map
 ---
