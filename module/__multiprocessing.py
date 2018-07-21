@@ -166,10 +166,10 @@ def _poo3(count, dframe):
 
 if __name__ == '__main__':
 
-    dframe = pd.DataFrame(np.random.randn(1e6).reshape((1e5, 1e1)))
+    dframe = pd.DataFrame(np.random.randn(int(1e5)).reshape((int(1e4), int(1e1))))
     cores = multiprocessing.cpu_count()         # 计算机核心数
     queue = multiprocessing.Queue()             # 多进程共享队列
-    lock = multiprocessing.Lock()               # 线程锁对象
+    lock = multiprocessing.Lock()               # 进程锁对象
     value = multiprocessing.Value('d', 0.0)     # 共享内存，最好避免使用
     arr = multiprocessing.Array('i', range(3))
 
@@ -191,9 +191,9 @@ if __name__ == '__main__':
 
         # queue若非空则进程不终止，Manager对象可避免
         # pro = _process3(queue)                      # 处理队列数据
-        # _process2(cores, lock, dframe, queue)       # 向队列插入数据
-        # while not queue.empty():                    # 等待队列为空
-        #     sleep(1)
+        _process2(cores, lock, dframe, queue)       # 向队列插入数据
+        while not queue.empty():                    # 等待队列为空
+            sleep(1)
         # pro.terminate()                             # 强制结束进程
 
 
