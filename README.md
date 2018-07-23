@@ -39,6 +39,7 @@ Python Notes
         ALT + UP/DOWN                   跳转至上下方法
         CTRL + SHIFT + ]/[              向后/前选定代码块
         CTRL + C                        可直接复制鼠标所在行
+        CTRL + D                        复制并粘贴鼠标所在行
         
         CTRL + /                        多行注释
         SHIFT + ENTER                   重起一行
