@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
+import abc
+import functools
 import math
-import array
-from warnings import warn
+import operator
+import reprlib
+import collections
+import itertools
+import copy
+import numbers
+
 
 # __xxx__,系统专用标识,可在类外部使用instance.__xxx__形式调用
 # __xxx，伪私有声明，不可在类外部使用instance.__xxx形式调用
@@ -10,223 +17,300 @@ from warnings import warn
 # 对象实例的属性可映射到__dict__中的key
 # 对象实例的属性查找顺序遵循--实例对象本身 --> 类 --> 类的父类
 #
+# Class0(Class1,Class2,....)多重继承
+# Class0.__mro__元组中为所有继承类对象, (Class0, Class1, Class2, ...., object)
+# Class0调用方法时遍历各个类，直到找到对应方法或发生异常
+
+# 最好不要直接使用内置数据类型（C语言编写）作为基类, 子类可能无法覆盖基类的方法
+
+# 鸭子类型（表征学）：忽略对象类型, 关注对象有没有实现特定协议（方法）
+# 白鹅类型（支序系统学）：忽略对象单独特征，根据祖先特征分类
+
+# collections.abc中模块UML图
+#
+# Iterable                      >>  Iterator
+# Iterable + Container + Sized  >>  Sequence/Mapping/Set
+# Sized                         >>  MappingView
+#
+# Sequence          >>  MutableSequence
+# Mapping           >>  MutableMapping
+# Set               >>  MutableSet
+# Set + MappingView >>  ItemsView/KeysView
+# MappingView       >> ValuesView
+
+# 运算符重载: a + b
+# 优先执行a.__add__(b), 返回不为NotImplemented时作为结果输出
+# 否则执行b.__radd__(a), 返回不为NotImplemented时作为结果输出
+# 否则溢出TypeError异常
+# 即正向方法调用不成功的话，调用反向方法
+
+# += 方法__iadd__未实现时, 自动调用__add__
+
+# 实现__iter__或__getitem__后, 对象可迭代
+# 执行iter()后返回迭代器
 
 
-class Vector2D(object):
+class _Vector2D:
+    """
+    限制属性, 不可新添加属性
+    元组存储属性，节省内存
+    """
+    __slots__ = ('x', 'y')
     typecode = 'd'
 
-    def __init__(self, x=0, y=0):
-        self.__x = float(x)
-        self.__y = float(y)
 
-    @property
-    def x(self):
-        return self.__x
+class Vector():
+    """内部属性"""
 
-    @property
-    def y(self):
-        return self.__y
+    typecode = 'd'
+    shorcut_names = 'xyzt'
+
+    def __init__(self, components):
+        """
+        constructor
+        """
+        self._components = components
+
+        self.__pos = 0
+
+    def __iter__(self):
+        """
+        iter()
+        return self时，即是可迭代对象，又是自身的迭代器
+
+        未实现该方法时试图迭代__getitem__方法, 从0开始索引
+        可迭代需实现__iter___：isinstance(self, abc.Iterable) = True
+        迭代器需实现__next__和__iter__: isinstance(self, abc.Iterator) = True
+
+        可迭代对象一定不能是自身的迭代器, 即必须实现__iter__, 但不能实现__next__
+        """
+        # 返回生成器时, 迭代时不调用__next__方法
+        # return self时(迭代器). 迭代时调用__next__方法
+        return (i for i in self._components)
+
+    def __next__(self):
+        """
+        for...in...、list(self.__iter__)、
+        .next(self.__iter__)、next(self.__iter__)
+
+        返回下一个可迭代对象, 捕获StopIteration异常后停止
+        """
+        pos = self.__pos
+        if pos < len(self._components):
+            value = self._components[self.__pos]
+            self.__pos= pos + 1
+            return value
+        else:
+            self.__pos = 0
+            raise StopIteration
+
+    def __contains__(self, item):
+        """
+        in self
+        """
+        return item in self._components
+
+    def __len__(self):
+        """
+        len(self)
+        """
+        return len(self._components)
+
+    def __getattr__(self, key):
+        """"
+        value = self.key, key不存在时
+        影响hasattr(instance, name)
+        """
+        cls = type(self)
+        if len(key) == 1:
+            pos = cls.shorcut_names.find(key)
+            if 0 <= pos < len(self._components):
+                return self._components[pos]
+        raise AttributeError('{.__name__!r} objetc has no attribute {!r}'.format(cls, key))
+
+    def __setattr__(self, key, value):
+        """
+        self.key = value
+
+        对内部属性赋值均会调用该方法, 防止死循环
+        self.__dict__方式赋值不调用__setattr__方法
+        """
+        cls = type(key)
+        if len(key) == 1:
+            if key in cls.shorcut_names:
+                error = 'Read-only attribute {attr_name!r}'
+            elif key.islower():
+                error = "cann't set attributes 'a-z' in {cls_name!r}"
+            else:
+                error = ''
+            if error:
+                msg = error.format(cls_name=cls.__name__, attr_name=key)
+                raise AttributeError(msg)
+        # 更新self.__dict__
+        # self.__dict__[key] = value
+        super().__setattr__(key, value)
+
+    def __getitem__(self, index):
+        """
+        value = self[key]
+
+        实现该方法对象即可迭代
+        index为数字, for循环中溢出IndexError时迭代结束
+        """
+        if isinstance(index, slice):
+            return type(self)(self._components[index])
+        elif isinstance(index, int):
+            try:
+                return self._components[index]
+                # return self.__getattribute__('_components')[index]
+            except(KeyError, AttributeError, IndexError) as err:
+                raise err
+        else:
+            raise TypeError('Index must be integers!')
+
+    def __setitem__(self, key, value):
+        """
+        self[key] = value
+        """
+        msg = "%s object does not support item assignment" \
+              % type(self).__name__
+        raise TypeError(msg)
+
+    def __repr__(self):
+        """
+        repr(self)
+        """
+        components = reprlib.repr(self._components)
+        components = components[components.find('['):]
+        return 'Vector({})'.format(components)
+
+    def __str__(self):
+        """
+        str(self)
+        """
+        return str(tuple(self))
+
+    def __bytes__(self):
+        """
+        bytes(self)
+        """
+        return bytes([ord(self.typecode)]) + bytes(self._components)
+
+    def __eq__(self, other):
+        """
+        self == other
+        """
+        if isinstance(other, type(self)):
+            if len(self) != len(other):
+                return False
+            for a, b in zip(self, other):
+                if a != b:
+                    return False
+            return True
+        else:
+            return NotImplemented
 
     def __hash__(self):
         """
+        hash(self)
+
         可散列对象: 其生命周期内散列值不变、相同对象的散列值相等
         对于原子不可变数据类型str、bytes和数值类型都是hashable
         使用异或^混合各分量的散列值
         """
-        return hash(self.x) ^ hash(self.y)
-
-    def __iter__(self):
-        return (i for i in (self.x, self.y))
-
-    def __repr__(self):
-        cls_name = type(self).__name__
-        return '{}({})' .format(cls_name, str(', '.join(repr(i) for i in self)))
-
-    def __str__(self):
-        return str(tuple(self))
-
-    def __format__(self, fmt_spec=''):
-        """
-        未定义时, 使用无参的format则调用__str__方法
-        format(Vector2D) ==> str(Vector2D)
-        """
-        components = (format(c ,fmt_spec) for c in self)
-        return '{}, {}'.format(*components)
-
-    def __bytes__(self):
-        return bytes([ord(self.typecode)]) + \
-               bytes(array.array(self.typecode, self))
-
-    def __eq__(self, other):
-        return tuple(self) == tuple(self)
-
-    def __abs__(self):
-        return math.hypot(self.x, self.y)
-
-    def __bool__(self):
-        return bool(abs(self))
+        hashes = (hash(x) for x in self._components)
+        return functools.reduce(operator.xor, hashes, 0)
 
     def __add__(self, other):
-        return Vector2D(self.x + other.x, self.y + other.y)
+        """
+        self + other
+
+        # 溢出NotImplemented后, 执行other.__radd__(self)
+        """
+        # if self is other:
+        #     other = copy.deepcopy(other)
+        try:
+            pairs = itertools.zip_longest(self, other, fillvalue=0.0)
+            return Vector([a + b for a, b  in pairs])
+        except TypeError:
+            return NotImplemented
+
+    def __radd__(self, other):
+        """
+        other + self
+
+        溢出NotImplemented后, 执行other.__add__(self)
+        """
+        return self + other
 
     def __mul__(self, scalar):
-        return Vector2D(self.x * scalar, self.y *  scalar)
+        if isinstance(scalar, numbers.Real):
+            return Vector([i * scalar for i in self])
+        else:
+            return NotImplemented
 
-    def angle(self):
-        return math.atan2(self.y, self.x)
+    def __rmul__(self, scalar):
+        return self * scalar
+
+    def __abs__(self):
+        """
+        abs(self)
+        """
+        return math.sqrt(sum(x * x for x in self))
+
+    def __bool__(self):
+        """
+        bool(self)
+        """
+        return bool(abs(self))
+
+    def __call__(self):
+        """
+        self()
+        """
+        pass
 
     @classmethod
     def frombytes(cls, octets):
-        code = chr(octets[0])
-        memv = memoryview(octets[1:]).cast(code)
-        return cls(*memv)
+        return cls(memoryview(octets[1:]).cast(chr(octets[0])))
+
+    def _instance(self):
+        print('Iterable: ', isinstance(self, collections.Iterable))
+        # True, __iter__方法
+        print('Iterator: ', isinstance(self, collections.Iterator))
+        # True, __iter__和__next__方法
+        print('Container: ', isinstance(self, collections.Container))
+        # True, __container__方法
+        print('Sized: ', isinstance(self, collections.Sized))
+        # True, __len__方法
+
+vec = Vector([1, 2, 3])
+
+# vec._instance()
+print(next(vec))
 
 
-def _vector2d():
+# class Car(metaclass=abc.ABCMeta):
+class Car(abc.ABC):
+    # python 2
+    # __metaclass__ = abc.ABCMeta
 
-    vector = Vector2D(1, 2)
-
-    print({vector, vector})
-    # {Vector2D(1.0, 2.0)}
-
-    print(repr(vector))
-    # Vector2D(1.0, 2.0)
-
-    print(str(vector))
-    # (1.0, 2.0)
-
-    bt = bytes(vector)
-    print(Vector2D.frombytes(bt))
-    # (1.0, 2.0)
-
-
-_vector2d()
-
-
-_MODEL_BATTERY = {"A": 70, "S": 100}
-
-_MYDICT = {"a": 1, "b": 2, "c": 3}
-
-
-class Car(object):
-    """
-    内置属性、抽象类
-    """
-    # 类变量，统计汽车总数,该变量可通过类直接引用
+    # 类级变量
     count = 0
     __count = 0
 
     def __init__(self, make, color):
-        """构造函数"""
-
-        # 关键字列表及迭代次数标志
-        # 直接使用__dict__初始化则不调用__setattr__方法，务必放置在__init__开头
-        self.__dict__['_keys'] = []
-        self.__dict__['_pos'] = 0
-        self.make, self.color, self.__odometer = make, color, 0
+        self.make, self.color = make, color
+        self.__odometer = 0
         Car.count += 1
         Car.__count += 1
 
-    def __del__(self):
-        """del self"""
-        del self
-
-    def __str__(self):
-        """str(self)"""
-        pass
-
-    def __call__(self, *args):
-        """self()"""
-        pass
-
-    def __contains__(self, item):
-        """in self"""
-        pass
-
-    def __len__(self):
-        """len(self)"""
-        pass
-
-    def __getitem__(self, key):
-        """self[key]"""
-        try:
-            # return self.__dict__[key]
-            return self.__getattribute__(key)
-        except(KeyError, AttributeError):
-            raise
-
-    def __setitem__(self, key, value):
-        """self[key] = value"""
-        if key in self.__dict__:
-            self.__dict__[key] = value
-        else:
-            raise KeyError
-
-    def __getattr__(self, key):
-        """
-        self.key, key不存在时
-        影响hasattr(instance, name)
-        """
-        raise AttributeError
-
-    def __setattr__(self, key, value):
-        """self.key = value"""
-        self.__dict__[key] = value
-        # 存储不以'_'开头的属性
-        if key[0] != '_':
-            try:
-                if key not in self.__getattribute__('_keys'):
-                    self.__dict__['_keys'].append(key)
-            except KeyError:
-                self.__dict__['_keys'] = []
-
-    def __iter__(self):
-        """
-        使能Iterable
-
-        list、tuple、dict、str--Iterable，不是Iterator
-        iter()--Iterator对象
-        """
-        return self
-
-    def next(self):
-        """
-        迭代器Iterator
-
-        for...i...，next(),list(),.next()方式均可调用该方法
-        iter() >> 对象别名，当前迭代位置不变
-        list() >> 将迭代对象转化为列表的形式
-        next() >> 迭代一次，与.next()方式作用相同
-        将类中键值对以元组形式依次输出，关键词存储在_keys中
-        """
-        pos = self.__dict__['_pos']
-        keys = self.__dict__['_keys']
-
-        if len(keys) - pos:
-            key = keys[pos]
-            self.__dict__['_pos'] = pos + 1
-            return key, self.__getattribute__(key)
-        else:
-            self.__dict__['_pos'] = 0
-            raise StopIteration
-
     @property
     def odometer(self):
-        """
-        使用property装饰器，将类方法转换为类属性（只读）
-
-        value = instance.odometer形式引用，调用时执行property函数的getter方法
-        若使用通过instance.read_odometer形式则报错
-        """
         return self.__odometer
 
     @odometer.setter
     def odometer(self, mile):
-        """
-        使用装饰器的setter方法对类方法赋值
-
-        instance.odometer = value时调用
-        """
         # 检查参数mile是否为int或float类型
         if isinstance(mile, int) or isinstance(mile, float):
             if self.__odometer > mile:
@@ -236,89 +320,53 @@ class Car(object):
         else:
             raise TypeError('Odemeter should be a num!')
 
-    def __get_baseinfo(self):
-        """
-        私有函数，作为baseinfo(property对象)的getter函数
+    # 与使用装饰器等价
+    # odometer = property(getter, setter)
 
-        lambda self:'%s %s' %(self.make,self.color)与上等价
-        经过property实例化后，通过value = instance.baseinfo调用该方法
-        """
-        return '%s %s' % (self.make, self.color)
-
-    def __set_baseinfo(self, tuple_info):
-        """
-        作为baseinfo(property对象)的setter函数
-
-        经过property实例化后，通过instance.baseinfo = value调用该方法
-        """
-        self.make, self.color = map(lambda x: x.title(), tuple_info)
-
-    baseinfo = property(__get_baseinfo, __set_baseinfo)
-
+    @abc.abstractmethod
     def info(self):
-        strinfo = ''
-        for key in self.__dict__['_keys']:
-            value = self.__dict__[key]
-            strinfo += '%s:%s ' % (key, value)
-        return strinfo.title()
-
-    def get_count1(cls):
-        return cls.__count
-
-    # 声明方法为类方法（只能调用类级成员）
-    get_count1 = classmethod(get_count1)
+        print('%s, %s' % (self.make, self.color))
 
     @classmethod
-    def get_count2(cls):
-        """类成员方法"""
+    def get_count(cls):
         return cls.__count
 
-    @staticmethod
-    def get_count3():
-        """静态成员方法"""
-        # return Car.__count
-        return globals()['Car'].__count
 
+class Battery:
+    __ModelInfo = {'A': 70, 'S': 100}
 
-class Battery(object):
-    def __init__(self, model):
-        model = model.title()
+    def __init__(self, model='A'):
+        self.model, self.__size = self.__init_model(model)
+
+    def __init_model(self, model):
         try:
-            self.__battery_size = _MODEL_BATTERY[model]
+            size = self.__ModelInfo[model]
+            return model, size
         except KeyError:
-            self.__battery_size = 0
-            raise ("Error Model!")
+            return 'A', 70
 
-        except Exception:
-            raise
-
+    @property
     def size(self):
-        return '%sKwh' % self.__battery_size
+        return self.__size
 
 
 class ElectricCar(Car):
-    """
-    继承Car类
-
-    Class0(Class1,Class2,....)为多重继承，应避免使用
-    不同基类（无继承关系）之间方法可相互调用，这些方法在共同子类中有效，self对象的特性
-    """
 
     def __init__(self, make, color, model='a', **kwargs):
         # 初始化父类方法，未初始化将不能使用父类方法
         super(ElectricCar, self).__init__(make, color)
+
         self.battery = Battery(model)
-        # self._others = kwargs
-        self.__add2dict(kwargs)
 
-    def __add2dict(self, dict):
-        """
-        将动态字典转换为对象属性
+        for key, value in kwargs.items():
+            self.__dict__[key] = value
 
-        调用父类的__setattr__方法，以更新对象的属性列表
-        """
-        for key, value in dict.items():
-            self.__setattr__(key, value)
+    def info(self):
+        super(ElectricCar, self).info()
+        print('%sKwh-battery' % self.battery.size)
+
+# car = ElectricCar('Tesla', 'Balck')
+# car.info()
 
 
 class Dict2Object(object):

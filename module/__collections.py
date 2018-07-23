@@ -143,7 +143,9 @@ def _counter():
 
 #=======================================================================
 """UserDict"""
-# 使用dict作为超类可能需要重构许多方法，UserDict方便继承
+# 使用c语言编写的内置数据类型list、set等作为超类，子类中的覆盖实现可能无效
+# 使用dict作为超类，子类中可能需要重构许多方法，UserDict方便继承
+
 class _userDict(UserDict):
 
     def __missing__(self, key):
