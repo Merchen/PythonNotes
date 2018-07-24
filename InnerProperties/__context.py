@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import contextlib
 # 上下文协议需实现__enter__和__exit__方法
 
 #=====================================================
@@ -50,4 +51,35 @@ def _TestWith():
         print(what)
         # 54321
 
-_TestWith()
+# _TestWith()
+
+
+#=====================================================
+"""context"""
+# contextmanager装饰器实现__enter__和__exit__方法
+# with中的as语句将yield的值绑定到as指定的变量
+
+# yield前语句在with块开始时执行
+# yield后语句在with块结束时执行
+def context():
+
+    @contextlib.contextmanager
+    def looking_glass():
+        original_write = sys.stdout.write
+
+        def reverse_write(text):
+            original_write(text[::-1])
+
+        sys.stdout.write = reverse_write
+
+        yield 'RETNE'
+        sys.stdout.write = original_write
+        print('EXIT')
+
+
+    with looking_glass() as f:
+        print(f)
+        # ENTER
+        # EXIT
+
+# context()
