@@ -74,7 +74,7 @@ def prime():
 #
 # send执行后，yield表达式左值接收send参数，程序执行至下一个yield表达式暂停
 # 并将此时的yield右值作为函数返回值
-#
+
 Result = namedtuple('Result', 'count average')
 
 
@@ -106,7 +106,6 @@ def _TestAverager():
     """生成器测试"""
     avg = averager()
     avg.send(None)
-
     print(avg.send(10))
     # 10.0
     print(avg.send(20))
@@ -136,10 +135,10 @@ def _TestAverager():
 # 结构:  调用方 >> 委派生成器(管道) >> 子生成器(简单迭代器, 仅实现__next__方法)
 # 委派生成器在yield from处暂停, 调用方将数据直接发送给子生成器, 子生成器把产出值发给调用方
 #
-
 def _TestYieldFrom():
     yield from 'AB'
     yield from range(3)
+
 
 # print(list(_TestYieldFrom()))
 # ['A', 'B', 0, 1, 2]
@@ -173,14 +172,10 @@ def main():
             # 接收averager()的yield值
             _ = group.send(value)
         group.send(None)
-    print(results)  # {'girls': Result(count=3, average=20.0), 'boys': Result(count=3, average=50.0)}
-
+    print(results)
+    # {'girls': Result(count=3, average=20.0), 'boys': Result(count=3, average=50.0)}
 
 main()
-
-
-
-
 
 
 # =======================================================================
