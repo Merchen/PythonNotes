@@ -190,9 +190,9 @@ def fun2():
         :param nested: 嵌套列表
         :return: 包含全部元素且不含列表嵌套的列表
         """
-        global msg1,msg2
+        global msg1, msg2
         for sublist in nested:
-            if isinstance(sublist,list):
+            if isinstance(sublist, list):
                 # flatten(sublist)             # 不可替代下方for循环，此句不重新建立变量存储空间，与continue效果一致
                 for ele in flatten(sublist):   # r0
                     msg2 = yield ele           # r1,用于内层循环的yield，传值给外部
