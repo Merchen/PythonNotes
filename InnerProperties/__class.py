@@ -7,6 +7,8 @@ import reprlib
 import collections
 import itertools
 import numbers
+import keyword
+import warnings
 
 # __xxx__,系统专用标识,可在类外部使用instance.__xxx__形式调用
 # __xxx，伪私有声明，不可在类外部使用instance.__xxx形式调用
@@ -46,6 +48,15 @@ import numbers
 
 # 实现__iter__或__getitem__后, 对象可迭代
 # 执行iter()后返回迭代器
+#
+# instance__class__ == type(instance)
+# instance.__class__.__name__ 获取类名
+
+# dir([object]) 列出对象的可用属性
+# vars([object]) 返回object的__dict__属性, 未执行参数时与locals()等价
+# setattr(object, name, value) 调用object.name = value
+# __getattr__(self, name)
+# __getattribute__(self, name) 点号/getattr/hasattr均会触发该方法
 
 
 class _Vector2D:
@@ -57,19 +68,30 @@ class _Vector2D:
     typecode = 'd'
 
 
-class Vector():
+class Vector:
     """内部属性"""
 
     typecode = 'd'
     shorcut_names = 'xyzt'
 
+    def __new__(cls,arg):
+        """
+        构造方法, 必须返回实例
+        自动调用__init__方法，将
+        """
+        if isinstance(arg, collections.MutableSequence):
+            return super().__new__(cls)
+        else:
+            return arg
+
     def __init__(self, components):
         """
-        constructor
+        初始化
         """
         self._components = components
 
         self.__pos = 0
+        self.__data = collections.namedtuple('data','value')(10)
 
     def __iter__(self):
         """
@@ -114,11 +136,40 @@ class Vector():
         """
         return len(self._components)
 
-    def __getattr__(self, key):
-        """"
-        value = self.key, key不存在时
-        影响hasattr(instance, name)
+    def __getattribute__(self, key):
         """
+        value = self.key
+
+        未找到属性时抛出AttributeError, __getattr__捕获异常
+        self.__dict__也会调用该方法
+
+        属性查找流程
+        hasattr/getattr(obj, key)/obj.key -> obj.__getattribute__ -> obj.__getattr__
+        """
+        try:
+            # 实现必须调用超类方法
+            return super().__getattribute__(key)
+        except AttributeError:
+            raise AttributeError
+
+    def __getattr__(self, key):
+
+        """
+        self.key不存在时
+        """
+
+        print(hasattr(self, '_Vector__data'))
+        # True
+        # 在此检查不存在的属性会造成死循环
+
+        if hasattr(self.__data, 'value'):
+            print(getattr(self.__data, 'value', None))
+        # True
+
+        if  keyword.iskeyword(key):
+            # self.key, 检查key命名是否合法
+            raise TypeError('Illegal keyword: %s' %key)
+
         cls = type(self)
         if len(key) == 1:
             pos = cls.shorcut_names.find(key)
@@ -283,9 +334,8 @@ class Vector():
         # True, __len__方法
 
 vec = Vector([1, 2, 3])
-
 # vec._instance()
-print(next(vec))
+print(vec.x)
 
 
 # class Car(metaclass=abc.ABCMeta):
@@ -293,7 +343,7 @@ class Car(abc.ABC):
     # python 2
     # __metaclass__ = abc.ABCMeta
 
-    # 类级变量
+    # 类级变量, 实例变量遮掩类级变量
     count = 0
     __count = 0
 
@@ -318,8 +368,15 @@ class Car(abc.ABC):
         else:
             raise TypeError('Odemeter should be a num!')
 
+    @odometer.deleter
+    def odometer(self):
+        try:
+            del self.__dict__['_Car__odometer']
+        except KeyError:
+            warnings.warn('Delete attribute many times!')
+
     # 与使用装饰器等价
-    # odometer = property(getter, setter)
+    # odometer = property(getter, setter, deleter)
 
     @abc.abstractmethod
     def info(self):
@@ -366,17 +423,30 @@ class ElectricCar(Car):
 # car = ElectricCar('Tesla', 'Balck')
 # car.info()
 
-
-class Dict2Object(object):
-    """利用__dict__内置属性，将字典变量添加至类属性"""
-
-    def __init__(self):
-        self.__dict__.update(_MYDICT)
+#
+# class Dict2Object(object):
+#     """利用__dict__内置属性，将字典变量添加至类属性"""
+#
+#     def __init__(self):
+#         self.__dict__.update(_MYDICT)
 
 
 # ---------------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
-    pass
+    ec = ElectricCar('Tesla', 'black')
+
+    """实例变量遮掩类级变量"""
+    print(ec.count, ElectricCar.count)
+    # 1, 1
+    ec.count = 10
+    print(ec.count, ElectricCar.count)
+    # 10, 1
+
+
+    del ec.odometer
+    del ec.odometer
+    # del ec.odometer
+
     # mycar1 = ElectricCar('tesla', 'black', model='s', year=2016)
     # mycar2 = Car('bmw', 'grey')
     #

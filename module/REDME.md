@@ -1,5 +1,6 @@
 模块与包
 ===
+
     模块在import时执行初始化，仅载入一次
     可使用importlib.reload()函数重新加载
     
@@ -24,9 +25,9 @@
 > ## import module
     以module.xxx形式引用
     xxx: 内部定义的function/tag/模块导入的任何对象如package、module、funtion、tag
+<br>
 
 > ## import xxx.yyy
----
     以xxx.yyy全名称形式引用
     
     import package.package/module/funtion/tag
@@ -48,7 +49,6 @@
     from module import function/tag/package/module
    
     yyy = *表示导入所有对象, 并以无前缀(命名空间)的方式引用yyy中的模块/函数/变量
-    
 <br> 
 
 
