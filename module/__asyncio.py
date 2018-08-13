@@ -1,7 +1,7 @@
-import sys
-import time
-import itertools
 import asyncio
+import itertools
+import sys
+
 import aiohttp
 
 from __futures import clock, DownloadFlags

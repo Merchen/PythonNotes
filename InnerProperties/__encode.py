@@ -1,19 +1,27 @@
 import codecs
 import os
 
-# 从Python3的str对象中获取字符(Unicode)等价于从Python 2的Unicode对象中获取字符
-#
-# unicode万国码, 对所有字符使用2个字节
-# utf - 8, 对英文使用一个字节
-#
-# Python默认使用UTF-8编译源码, utf_8, utf8, U8一致
+# python3的str对象以unicode格式编码
+# 从python3的str对象中获取字符(Unicode)等价于从python 2的Unicode对象中获取字符
+
+# unicode万国码, 对所有字符使用2个字节; utf-8, 对英文使用一个字节
+
+# Python默认使用UTF-8编码, utf_8, utf8, U8一致
 # bytes经过适当转换可变成字符，如utf-8和gbk格式的bytes
+
+# encode(指明字节序列编码方式)--码位转换成字节序列的过程
+# unicode -> bytes    unicode(内存) -> utf-8(文件)
 #
-# 编码(指明字节序列编码方式)--码位转换成字节序列的过程, str -> bytes
-# 解码(指明字节序列编码方式)--字节序列转换为码位的过程, bytes -> str
+# decode(指明字节序列编码方式)--字节序列转换为码位的过程
+# bytes -> unicode    utf-8(文件) -> unicode(内存)
+#
+# 以下两种写入效果一直, 打开文件均显示'你好'
+# 打开文件时自动decode
+# with open('t1.txt', 'wb') as f1, open('t2.txt', 'w', encoding='utf-8') as f2:
+#     f1.write('你好'.encode())
+#     f2.write('你好')
 
 def fun1():
-
     len('12345'.encode('ASCII'))
     # 5
     len('12345'.encode('UTF-8'))

@@ -29,6 +29,16 @@ property/classmethod/staticmethod等装饰器使用了描述符功能
 
 仅有__get__方法的描述符可实现高效缓存
 赋值时同名属性覆盖描述符, 后续访问直接从__dict__中获取属性值, 不触发__get__, 达到缓存目的
+
+##元类##########################################
+元类是生产机器机器, 用于构建类的类
+所有类都是type的实例, 所有元类都是type的子类
+
+使用元类的类在导入阶段(import)调用元类的__init__方法
+
+MyClass = type('MyClass', (object, ), dict(a=2, b=lambda self:self.a * 2))
+myclass = MyClass()
+print(myclass.b())
 """
 
 
@@ -73,15 +83,6 @@ class Quantity:
             raise ValueError('Value must be > 0!')
 
 
-def entity(self):
-    """类装饰器, 更新托管属性名称"""
-    for key, attr in self.__dict__.items():
-        if isinstance(attr, Quantity):
-            attr.name = '_{}#{}'.format(type(attr).__name__, key)
-    return self
-
-
-@entity
 class LineItem:
     """托管类"""
 
@@ -101,6 +102,7 @@ class LineItem:
 
 
 if __name__ == '__main__':
+    print('LineItem')
     # 托管实例
     instance = LineItem(10, 20)
 
@@ -110,10 +112,61 @@ if __name__ == '__main__':
     # weight和price被构造成别名
     print(vars(instance))
     # {'_Quantity#0': 10, '_Quantity#1': 20}
+
+
+def entity(self):
+    """类装饰器"""
+    for key, attr in self.__dict__.items():
+        if isinstance(attr, Quantity):
+            attr.name = '_{}#{}'.format(type(attr).__name__, key)
+    return self
+
+
+@entity
+class LineItem0:
+    weight, price = Quantity(), Quantity()
+
+    def __init__(self, weight, price):
+        self.weight = weight
+        self.price = price
+
+    def subtotal(self):
+        return self.weight * self.price
+
+
+if __name__ == '__main__':
+    print('LineItem0')
+    print(vars(LineItem0(10, 20)))
     # {'_Quantity#weight': 10, '_Quantity#price': 20}
 
 
-def _quantity(prop):
+class Entity(type):
+    """元类"""
+
+    def __init__(cls, name, bases, attr):
+        # 子类导入阶段调用元类的__init__方法
+        super(Entity, cls).__init__(name, bases, attr)
+        entity(cls)
+
+
+class LineItem1(metaclass=Entity):
+    weight, price = Quantity(), Quantity()
+
+    def __init__(self, weight, price):
+        self.weight = weight
+        self.price = price
+
+    def subtotal(self):
+        return self.weight * self.price
+
+
+if __name__ == '__main__':
+    print('LineItem1')
+    print(vars(LineItem1(10, 20)))
+    # {'_Quantity#weight': 10, '_Quantity#price': 20}
+
+
+def quantity(prop):
     """特性工厂函数"""
 
     def _getter(instance):
@@ -129,10 +182,10 @@ def _quantity(prop):
     return property(_getter, _setter)
 
 
-class _LineItem:
-    """利用特性工厂函数添加描述符"""
-    weight = _quantity('weight')
-    price = _quantity('price')
+class LineItem2():
+    # 利用特性工厂函数添加描述符
+    weight = quantity('weight')
+    price = quantity('price')
 
     def __init__(self, weight, price):
         self.weight = weight
@@ -143,5 +196,6 @@ class _LineItem:
 
 
 if __name__ == '__main__':
-    instance = _LineItem(10, 20)
-    print(instance.weight)
+    print('LineItem2')
+    print(vars(LineItem2(10, 20)))
+    # {'weight': 10, 'price': 20}

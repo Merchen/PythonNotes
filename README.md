@@ -36,7 +36,7 @@ Python Notes
         CTRL + SHIFT + NUMPAD *,1       折叠全部类方法
         CTRL + SHIFT + NUMPAD +/-       展开/折叠全部
 
-        ALT + UP/DOWN                   跳转至上下方法
+        ALT + UP/DOWN                   跳转至前/后一个方法
         CTRL + SHIFT + ]/[              向后/前选定代码块
         CTRL + C                        可直接复制鼠标所在行
         CTRL + D                        复制并粘贴鼠标所在行

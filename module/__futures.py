@@ -1,7 +1,8 @@
 import os
-import requests
-from concurrent import futures
 import time
+from concurrent import futures
+
+import requests
 
 
 def clock(fun):

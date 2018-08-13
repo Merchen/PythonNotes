@@ -515,7 +515,7 @@ createTrigger1 = " \
 # ROLLBACK;
 # SELECT * FROM customers;
 
-mysql = MySQLConnector(host='127.0.0.1',port=3306,user= 'root',password='123456')
+mysql = MySQLConnector(host='127.0.0.1', port=3306, user= 'root', password='123456')
 mysql.conn.select_db('mydb')
 # db = mysql['mydb']
 mysql.commit()

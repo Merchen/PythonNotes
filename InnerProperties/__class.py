@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import abc
+import collections
 import functools
+import itertools
+import keyword
 import math
+import numbers
 import operator
 import reprlib
-import collections
-import itertools
-import numbers
-import keyword
 import warnings
+
 
 # __xxx__,系统专用标识,可在类外部使用instance.__xxx__形式调用
 # __xxx，伪私有声明，不可在类外部使用instance.__xxx形式调用
